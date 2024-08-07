@@ -21,5 +21,5 @@ if __name__ == "__main__":
   hidden = model("Hello, my dog is cute")
   print(hidden.shape)
   tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
-  entity_tokens = tokenizer.backend_tokenizer.pre_tokenizer.pre_tokenize_str('Hello, my dog is cute')
+  entity_tokens = tokenizer.pre_tokenizer.pre_tokenize_str('Hello, my dog is cute')
   print(entity_tokens)

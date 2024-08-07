@@ -7,7 +7,7 @@ from transformers import BartTokenizer, BartModel
 class NERE(nn.Module):
   def __init__(self,):
     super(NERE, self).__init__()
-    self.tokenizer = tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
+    self.tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
     self.backbone = BartModel.from_pretrained('facebook/bart-base')
   def forward(self, x):
     inputs = self.tokenizer(x, return_tensors = 'pt')
@@ -19,5 +19,7 @@ class NERE(nn.Module):
 if __name__ == "__main__":
   model = NERE().to(device('cuda'))
   hidden = model("Hello, my dog is cute")
-  print(hidden)
-
+  print(hidden.shape)
+  tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
+  entity_tokens = tokenizer.backend_tokenizer.pre_tokenizer.pre_tokenize_str('Hello, my dog is cute')
+  print(entity_tokens)

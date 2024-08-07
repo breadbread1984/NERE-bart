@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import torch
-from torch import device
+from torch import nn, device
 from transformers import BartTokenizer, BartModel
 
 class NERE(nn.Module):

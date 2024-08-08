@@ -15,6 +15,7 @@ class NERE(nn.Module):
     encoder_inputs = self.tokenizer(x, return_tensors = 'pt')
     encoder_inputs = encoder_inputs.to(self.backbone.device) # encoder_inputs.shape = (1, length, d_model)
     decoder_inputs = torch.randint(0,self.backbone.config['max_position_embeddings'],size = (1,self.triplets_num))
+    decoder_inputs = decoder_inputs.to(self.backbone.device)
     decoder_inputs = self.embed(decoder_inputs) # decoder_inputs.shape = (1, triplets_num, d_model)
     outputs = self.backbone(**encoder_inputs, decoder_inputs_embeds = decoder_inputs)
     last_hidden_states = outputs.last_hidden_state

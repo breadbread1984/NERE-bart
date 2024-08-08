@@ -58,4 +58,4 @@ if __name__ == "__main__":
   print(hs.shape,he.shape,ht.shape,ts.shape,te.shape,tt.shape)
   tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base')
   hidden = tokenizer.backend_tokenizer.pre_tokenizer.pre_tokenize_str('Hello, my dog is cute')
-  print(hidden.shape)
+  print(hidden)

@@ -55,7 +55,7 @@ class NERE(nn.Module):
 if __name__ == "__main__":
   model = NERE(label_num = 7).to(device('cuda'))
   hs,he,ht,ts,te,tt = model(["Hello, my dog is cute", "Hello the world!"])
-  print(hs.shape,he.shape.ht.shape.ts.shape,te.shape,tt.shape)
+  print(hs.shape,he.shape,ht.shape,ts.shape,te.shape,tt.shape)
   tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base')
   hidden = tokenizer.backend_tokenizer.pre_tokenizer.pre_tokenize_str('Hello, my dog is cute')
   print(hidden.shape)

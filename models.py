@@ -21,7 +21,7 @@ class NERE(nn.Module):
   def forward(self, x):
     encoder_inputs = self.tokenizer(x, return_tensors = 'pt', padding = True)
     encoder_inputs = encoder_inputs.to(self.backbone.device) # encoder_inputs.shape = (batch, length, d_model)
-    decoder_inputs = torch.randint(0,self.backbone.config.max_position_embeddings,size = (encoder_inputs.shape[0],self.triplets_num))
+    decoder_inputs = torch.randint(0, self.backbone.config.max_position_embeddings, size = (encoder_inputs.shape[0], self.triplets_num))
     decoder_inputs = decoder_inputs.to(self.backbone.device)
     decoder_inputs = self.embed(decoder_inputs) # decoder_inputs.shape = (batch, triplets_num, d_model)
     outputs = self.backbone(**encoder_inputs, decoder_inputs_embeds = decoder_inputs)
@@ -49,7 +49,7 @@ class NERE(nn.Module):
     # tail tag
     tail_tag = self.tail_entity_tag(last_hidden_states)
     tail_tag = F.softmax(tail_tag, dim = -1)
-    tail_tag = torch.argmax(tail_rag, dim = -1)
+    tail_tag = torch.argmax(tail_tag, dim = -1)
     return head_start, head_end, head_tag, tail_start, tail_end, tail_tag
 
 if __name__ == "__main__":

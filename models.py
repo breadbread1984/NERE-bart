@@ -21,7 +21,7 @@ class NERE(nn.Module):
   def forward(self, x):
     encoder_inputs = self.tokenizer(x, return_tensors = 'pt', padding = True)
     encoder_inputs = encoder_inputs.to(self.backbone.device) # encoder_inputs.shape = (batch, length, d_model)
-    decoder_inputs = torch.randint(0, self.backbone.config.max_position_embeddings, size = (encoder_inputs.shape[0], self.triplets_num))
+    decoder_inputs = torch.randint(0, self.backbone.config.max_position_embeddings, size = (encoder_inputs['input_ids'].shape[0], self.triplets_num))
     decoder_inputs = decoder_inputs.to(self.backbone.device)
     decoder_inputs = self.embed(decoder_inputs) # decoder_inputs.shape = (batch, triplets_num, d_model)
     outputs = self.backbone(**encoder_inputs, decoder_inputs_embeds = decoder_inputs)
@@ -55,7 +55,6 @@ class NERE(nn.Module):
 if __name__ == "__main__":
   model = NERE(label_num = 7).to(device('cuda'))
   hidden = model(["Hello, my dog is cute", "Hello the world!"])
-  print(hidden.shape)
   tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base')
   hs,he,ht,ts,te,tt = tokenizer.backend_tokenizer.pre_tokenizer.pre_tokenize_str('Hello, my dog is cute')
   print(hs.shape,he.shape.ht.shape.ts.shape,te.shape,tt.shape)

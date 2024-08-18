@@ -20,7 +20,6 @@ class NERE(nn.Module):
     self.entity_end = nn.Linear(self.encoder_and_entity_decoder.config.d_model, self.encoder_and_entity_decoder.config.max_position_embeddings)
     self.entity_tag = nn.Linear(self.encoder_and_entity_decoder.config.d_model, entity_tag_num + 1)
     self.relation_embed = nn.Embedding(num_embeddings = max_relation_num, embedding_dim = self.encoder_and_entity_decoder.config.d_model)
-    self.relation_embed = nn.Embedding(num_embeddings = max_relation_num, embedding_dim = self.encoder_and_entity_decoder.config.d_model)
     self.relation_head = nn.Linear(self.encoder_and_entity_decoder.config.d_model, max_entity_num)
     self.relation_tail = nn.Linear(self.encoder_and_entity_decoder.config.d_model, max_entity_num)
     self.relation_tag = nn.Linear(self.encoder_and_entity_decoder.config.d_model, relation_tag_num + 1)

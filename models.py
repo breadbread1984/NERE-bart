@@ -7,9 +7,8 @@ from transformers import AutoTokenizer, BartModel
 from transformers.models.bart.modeling_bart import BartDecoder
 
 class NERE(nn.Module):
-  def __init__(self, entity_tag_num, relation_tag_num, max_entity_num = 10, max_relation_num = 10, triplets_num = 3):
+  def __init__(self, entity_tag_num, relation_tag_num, max_entity_num = 10, max_relation_num = 10):
     super(NERE, self).__init__()
-    self.triplets_num = triplets_num
     self.max_entity_num = max_entity_num
     self.max_relation_num = max_relation_num
     self.tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base')
@@ -32,16 +31,16 @@ class NERE(nn.Module):
     last_hidden_states = outputs.last_hidden_state # last_hidden_state
     # entity start
     entity_start = self.entity_start(last_hidden_states)
-    entity_start = F.softmax(entity_start, dim = -1) # entity_start.shape = (batch, triplets_num, max_position_embeddings)
-    entity_start = torch.argmax(entity_start, dim = -1) # entity_start.shape = (batch, triplets_num)
+    entity_start = F.softmax(entity_start, dim = -1) # entity_start.shape = (batch, max_entity_num, max_position_embeddings)
+    entity_start = torch.argmax(entity_start, dim = -1) # entity_start.shape = (batch, max_entity_num)
     # entity end
     entity_end = self.entity_end(last_hidden_states)
-    entity_end = F.softmax(entity_end, dim = -1) # entity_end.shape = (batch, triplets_num, max_position_embeddings)
-    entity_end = torch.argmax(entity_end, dim = -1) # entity_end.shape = (batch, triplets_num)
+    entity_end = F.softmax(entity_end, dim = -1) # entity_end.shape = (batch, max_entity_num, max_position_embeddings)
+    entity_end = torch.argmax(entity_end, dim = -1) # entity_end.shape = (batch, max_entity_num)
     # entity tag
     entity_tag = self.entity_tag(last_hidden_states)
-    entity_tag = F.softmax(entity_tag, dim = -1) # entity_tag.shape = (batch, triplets_num, entity_tag_num)
-    entity_tag = torch.argmax(entity_tag, dim = -1) # entity_tag.shape = (batch, triplets_num)
+    entity_tag = F.softmax(entity_tag, dim = -1) # entity_tag.shape = (batch, max_entity_num, entity_tag_num)
+    entity_tag = torch.argmax(entity_tag, dim = -1) # entity_tag.shape = (batch, max_entity_num)
     # 2) relationship prediction
     relation_embed_inputs = torch.tile(torch.unsqueeze(torch.range(0, self.max_relation_num - 1, dtype = torch.int32), dim = 0), (input_ids.shape[0], 1)) # relation_embed_inputs.shape = (batch, max_relation_num)
     relation_embed_inputs = relation_embed_inputs.to(self.encoder_and_entity_decoder.device)

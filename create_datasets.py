@@ -3,7 +3,7 @@
 from datasets import load_dataset, Split
 
 def load_conll04():
-  trainset = load_dataset('DFJK-SLT/conll04', split = 'train', trust_remote_code = True)
+  trainset = load_dataset('DFKI-SLT/conll04', split = 'train', trust_remote_code = True)
   valset = load_dataset('DFKI-SLT/conll04', split = 'validation', trust_remote_code = True)
   return trainset, valset
 

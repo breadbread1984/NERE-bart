@@ -27,6 +27,7 @@ class NERE(nn.Module):
   def forward(self, x):
     encoder_inputs = self.tokenizer(x, return_tensors = 'pt', padding = True)
     encoder_inputs = encoder_inputs.to(self.encoder_and_entity_decoder.device) # encoder_inputs.shape = (batch, length, d_model)
+    # 1) entity prediction
     entity_embed_inputs = torch.tile(torch.unsqueeze(torch.range(0, self.max_entity_num - 1, dtype = torch.int32), dim = 0), (encoder_inputs['input_ids'].shape[0], 1)) # entity_embed_inputs.shape = (batch, max_entity_num)
     entity_embed_inputs = entity_embed_inputs.to(self.encoder_and_entity_decoder.device)
     entity_embed_inputs = self.entity_embed(entity_embed_inputs) # entity_embed_inputs.shape = (batch, max_entity_num, d_model)
@@ -44,6 +45,7 @@ class NERE(nn.Module):
     entity_tag = self.entity_tag(last_hidden_states)
     entity_tag = F.softmax(entity_tag, dim = -1) # entity_tag.shape = (batch, triplets_num, entity_tag_num)
     entity_tag = torch.argmax(entity_tag, dim = -1) # entity_tag.shape = (batch, triplets_num)
+    # 2) relationship prediction
     relation_embed_inputs = torch.tile(torch.unsqueeze(torch.range(0, self.max_relation_num - 1, dtype = torch.int32), dim = 0), (encoder_inputs['input_ids'].shape[0], 1)) # relation_embed_inputs.shape = (batch, max_relation_num)
     relation_embed_inputs = relation_embed_inputs.to(self.encoder_and_entity_decoder.device)
     relation_embed_inputs = self.relation_embed(relation_embed_inputs) # relation_embed_inputs.shape = (batch, max_relation_num, d_model)

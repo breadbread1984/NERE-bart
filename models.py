@@ -23,14 +23,12 @@ class NERE(nn.Module):
     self.relation_head = nn.Linear(self.encoder_and_entity_decoder.config.d_model, max_entity_num)
     self.relation_tail = nn.Linear(self.encoder_and_entity_decoder.config.d_model, max_entity_num)
     self.relation_tag = nn.Linear(self.encoder_and_entity_decoder.config.d_model, relation_tag_num + 1)
-  def forward(self, x):
-    encoder_inputs = self.tokenizer(x, return_tensors = 'pt', padding = True)
-    encoder_inputs = encoder_inputs.to(self.encoder_and_entity_decoder.device) # encoder_inputs.shape = (batch, length, d_model)
+  def forward(self, input_ids, attention_mask):
     # 1) entity prediction
-    entity_embed_inputs = torch.tile(torch.unsqueeze(torch.range(0, self.max_entity_num - 1, dtype = torch.int32), dim = 0), (encoder_inputs['input_ids'].shape[0], 1)) # entity_embed_inputs.shape = (batch, max_entity_num)
+    entity_embed_inputs = torch.tile(torch.unsqueeze(torch.range(0, self.max_entity_num - 1, dtype = torch.int32), dim = 0), (input_ids.shape[0], 1)) # entity_embed_inputs.shape = (batch, max_entity_num)
     entity_embed_inputs = entity_embed_inputs.to(self.encoder_and_entity_decoder.device)
     entity_embed_inputs = self.entity_embed(entity_embed_inputs) # entity_embed_inputs.shape = (batch, max_entity_num, d_model)
-    outputs = self.encoder_and_entity_decoder(**encoder_inputs, decoder_inputs_embeds = entity_embed_inputs)
+    outputs = self.encoder_and_entity_decoder(input_ids = input_ids, attention_mask = attention_mask, decoder_inputs_embeds = entity_embed_inputs)
     last_hidden_states = outputs.last_hidden_state # last_hidden_state
     # entity start
     entity_start = self.entity_start(last_hidden_states)
@@ -45,7 +43,7 @@ class NERE(nn.Module):
     entity_tag = F.softmax(entity_tag, dim = -1) # entity_tag.shape = (batch, triplets_num, entity_tag_num)
     entity_tag = torch.argmax(entity_tag, dim = -1) # entity_tag.shape = (batch, triplets_num)
     # 2) relationship prediction
-    relation_embed_inputs = torch.tile(torch.unsqueeze(torch.range(0, self.max_relation_num - 1, dtype = torch.int32), dim = 0), (encoder_inputs['input_ids'].shape[0], 1)) # relation_embed_inputs.shape = (batch, max_relation_num)
+    relation_embed_inputs = torch.tile(torch.unsqueeze(torch.range(0, self.max_relation_num - 1, dtype = torch.int32), dim = 0), (input_ids.shape[0], 1)) # relation_embed_inputs.shape = (batch, max_relation_num)
     relation_embed_inputs = relation_embed_inputs.to(self.encoder_and_entity_decoder.device)
     relation_embed_inputs = self.relation_embed(relation_embed_inputs) # relation_embed_inputs.shape = (batch, max_relation_num, d_model)
     outputs = self.relation_decoder(encoder_hidden_states = last_hidden_states, inputs_embeds = relation_embed_inputs)
@@ -65,9 +63,11 @@ class NERE(nn.Module):
     return entity_start, entity_end, entity_tag, relation_head, relation_tail, relation_tag
 
 if __name__ == "__main__":
-  model = NERE(entity_tag_num = 7, relation_tag_num = 5, ).to(device('cpu'))
-  es,ee,et,rh,rt,rt = model(["Hello, my dog is cute", "Hello the world!"])
-  print(es.shape,ee.shape,et.shape,rh.shape,rt.shape,rt.shape)
+  d = 'cpu'
+  model = NERE(entity_tag_num = 7, relation_tag_num = 5, ).to(device(d))
   tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base')
+  inputs = tokenizer(["Hello, my dog is cute", "Hello the world!"], return_tensors = 'pt', padding = True)
+  es,ee,et,rh,rt,rt = model(inputs['input_ids'].to(device(d)), inputs['attention_mask'].to(device(d)))
+  print(es.shape,ee.shape,et.shape,rh.shape,rt.shape,rt.shape)
   hidden = tokenizer.backend_tokenizer.pre_tokenizer.pre_tokenize_str('Hello, my dog is cute')
   print(hidden)

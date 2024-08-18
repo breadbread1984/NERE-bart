@@ -7,7 +7,7 @@ from transformers import AutoTokenizer, BartModel
 from transformers.models.bart.modeling_bart import BartDecoder
 
 class NERE(nn.Module):
-  def __init__(self, entity_tag_num, relation_tag_num, max_entity_num, max_relation_num, triplets_num = 3):
+  def __init__(self, entity_tag_num, relation_tag_num, max_entity_num = 10, max_relation_num = 10, triplets_num = 3):
     super(NERE, self).__init__()
     self.triplets_num = triplets_num
     self.max_entity_num = max_entity_num
@@ -64,7 +64,7 @@ class NERE(nn.Module):
     return entity_start, entity_end, entity_tag, relation_head, relation_tail, relation_tag
 
 if __name__ == "__main__":
-  model = NERE(entity_tag_num = 7).to(device('cuda'))
+  model = NERE(entity_tag_num = 7, relation_tag_num = 5, ).to(device('cuda'))
   es,ee,et,rh,rt,rt = model(["Hello, my dog is cute", "Hello the world!"])
   print(es.shape,ee.shape,et.shape,rh.shape,rt.shape,rt.shape)
   tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base')

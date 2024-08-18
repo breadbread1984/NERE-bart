@@ -14,7 +14,7 @@ class NERE(nn.Module):
     self.max_relation_num = max_relation_num
     self.tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base')
     self.encoder_and_entity_decoder = BartModel.from_pretrained('facebook/bart-base')
-    self.relation_decoder = BartModelDecoder.from_pretrained('facebook/bart-base')
+    self.relation_decoder = BartDecoder.from_pretrained('facebook/bart-base')
     self.entity_embed = nn.Embedding(num_embeddings = max_entity_num, embedding_dim = self.encoder_and_entity_decoder.config.d_model)
     self.entity_start = nn.Linear(self.encoder_and_entity_decoder.config.d_model, self.backbone.config.max_position_embeddings)
     self.entity_end = nn.Linear(self.encoder_and_entity_decoder.config.d_model, self.backbone.config.max_position_embeddings)

@@ -3,16 +3,6 @@
 from datasets import load_dataset, Split
 import numpy as np
 
-def find_sublist_positions(lst, sublist):
-    positions = []
-    sublist_len = len(sublist)
-    
-    for i in range(len(lst) - sublist_len + 1):
-        if lst[i:i + sublist_len] == sublist:
-            positions.append(i)
-    
-    return positions
-
 def load_conll04(tokenizer):
   trainset = load_dataset('DFKI-SLT/conll04', split = 'train', trust_remote_code = True)
   valset = load_dataset('DFKI-SLT/conll04', split = 'validation', trust_remote_code = True)
@@ -44,7 +34,11 @@ def load_conll04(tokenizer):
     relation_tags = np.pad(np.stack(relation_tags, axis = 0), (0, max_relation_num - len(relation_tags)), constant_values = len(relation_types))
     return {'entity_starts': entity_starts, 'entity_stops': entity_stops, 'entity_tags': entity_tags,
             'relation_heads': relation_heads, 'relation_tails': relation_tails, 'relation_tags': relation_tags}
-  return trainset.map(preprocess), valset.map(preprocess), max_entity_num, max_relation_num
+  trainset = trainset.map(preprocess)
+  trainset.set_format(type = 'torch', columns = ['entity_starts', 'entity_stops', 'entity_tags', 'relation_heads', 'relation_tails', 'relation_tags'])
+  valset = valset.map(preprocess)
+  valset.set_format(type = 'torch', columns = ['entity_starts', 'entity_stops', 'entity_tags', 'relation_heads', 'relation_tails', 'relation_tags'])
+  return trainset, valset, max_entity_num, max_relation_num
 
 def load_docred():
   trainset = load_dataset('thunlp/docred', split = 'train_annotated', trust_remote_code = True)

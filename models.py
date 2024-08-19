@@ -31,16 +31,10 @@ class NERE(nn.Module):
     last_hidden_states = outputs.last_hidden_state # last_hidden_state
     # entity start
     entity_start = self.entity_start(last_hidden_states)
-    entity_start = F.softmax(entity_start, dim = -1) # entity_start.shape = (batch, max_entity_num, max_position_embeddings)
-    entity_start = torch.argmax(entity_start, dim = -1) # entity_start.shape = (batch, max_entity_num)
     # entity end
     entity_end = self.entity_end(last_hidden_states)
-    entity_end = F.softmax(entity_end, dim = -1) # entity_end.shape = (batch, max_entity_num, max_position_embeddings)
-    entity_end = torch.argmax(entity_end, dim = -1) # entity_end.shape = (batch, max_entity_num)
     # entity tag
     entity_tag = self.entity_tag(last_hidden_states)
-    entity_tag = F.softmax(entity_tag, dim = -1) # entity_tag.shape = (batch, max_entity_num, entity_tag_num)
-    entity_tag = torch.argmax(entity_tag, dim = -1) # entity_tag.shape = (batch, max_entity_num)
     # 2) relationship prediction
     relation_embed_inputs = torch.tile(torch.unsqueeze(torch.range(0, self.max_relation_num - 1, dtype = torch.int32), dim = 0), (input_ids.shape[0], 1)) # relation_embed_inputs.shape = (batch, max_relation_num)
     relation_embed_inputs = relation_embed_inputs.to(self.encoder_and_entity_decoder.device)
@@ -49,16 +43,10 @@ class NERE(nn.Module):
     last_hidden_states = outputs.last_hidden_state
     # relation head
     relation_head = self.relation_head(last_hidden_states)
-    relation_head = F.softmax(relation_head, dim = -1)
-    relation_head = torch.argmax(relation_head, dim = -1)
     # relation tail
     relation_tail = self.relation_tail(last_hidden_states)
-    relation_tail = F.softmax(relation_tail, dim = -1)
-    relation_tail = torch.argmax(relation_tail, dim = -1)
     # relation tag
     relation_tag = self.relation_tag(last_hidden_states)
-    relation_tag = F.softmax(relation_tag, dim = -1)
-    relation_tag = torch.argmax(relation_tag, dim = -1)
     return entity_start, entity_end, entity_tag, relation_head, relation_tail, relation_tag
 
 if __name__ == "__main__":

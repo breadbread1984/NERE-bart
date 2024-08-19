@@ -77,7 +77,7 @@ def main(unused_argv):
       relation_heads = sample['relation_heads'].to(device(FLAGS.device))
       relation_tails = sample['relation_tails'].to(device(FLAGS.device))
       relation_tags = sample['relation_tags'].to(device(FLAGS.device))
-      pred_entity_starts, pred_entity_stops, pred_entity_tags, pred_relation_heads, pred_relation_tails, pred_tags = model(input_ids, attention_mask)
+      pred_entity_starts, pred_entity_stops, pred_entity_tags, pred_relation_heads, pred_relation_tails, pred_relation_tags = model(input_ids, attention_mask)
       loss1 = criterion(pred_entity_starts.transpose(1,-1), entity_starts)
       loss2 = criterion(pred_entity_stops.transpose(1,-1), entity_stops)
       loss3 = criterion(pred_entity_tags.transpose(1,-1), entity_tags)

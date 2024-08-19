@@ -51,7 +51,7 @@ class NERE(nn.Module):
 
 if __name__ == "__main__":
   d = 'cuda'
-  model = NERE(entity_tag_num = 7, relation_tag_num = 5, ).to(device(d))
+  model = NERE(entity_tag_num = 7, relation_tag_num = 5, max_entity_num = 14, max_relation_num = 10).to(device(d))
   tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base', add_prefix_space = True)
   inputs = tokenizer(["Hello, my dog is cute", "Hello the world!"], return_tensors = 'pt', padding = True)
   es,ee,et,rh,rt,rt = model(inputs['input_ids'].to(device(d)), inputs['attention_mask'].to(device(d)))

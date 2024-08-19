@@ -6,6 +6,7 @@ import torch
 from torch import nn, device, save, load, no_grad, any, isnan, autograd, sinh, log
 from torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
+from torcheval.metrics import MulticlassAccuracy
 from transformers import AutoTokenizer
 from create_datasets import load_conll04
 from models import NERE
@@ -98,9 +99,4 @@ def main(unused_argv):
         relation_tails = sample['relation_tails'].to(device(FLAGS.device))
         relation_tags = sample['relation_tags'].to(device(FLAGS.device))
         pred_entity_starts, pred_entity_ends, pred_entity_tags, pred_relation_heads, pred_relation_tails, pred_tags = model(input_ids, attention_mask)
-        _, pred_entity_starts = pred_entity_starts.detach().cpu().topk(1, dim = -1) # shape = (batch, max_entity, 1)
-        _, pred_entity_ends = pred_entity_ends.detach().cpu().topk(1, dim = -1)
-        _, pred_entity_tags = pred_entity_tags.detach().cpu().topk(1, dim = -1)
-        _, pred_relation_heads = pred_relation_heads.detach().cpu().topk(1, dim = -1)
-        _, pred_relation_tails = pred_relation_tails.detach().cpu().topk(1, dim = -1)
-        _, pred_relation_tags = pred_relation_tags.detach().cpu().topk(1, dim = -1)
+        

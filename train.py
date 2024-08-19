@@ -40,7 +40,13 @@ def main(unused_argv):
   model = NERE(meta['entity_types'], meta['relation_types'], max_entity_num = meta['max_entity_num'], max_relation_num = meta['max_relation_num'])
   model.to(device(FLAGS.device))
   model = DDP(model, device_ids=[dist.get_rank()], output_device=dist.get_rank(), find_unused_parameters=True)
-  criterion = nn.CrossEntropyLoss()
+  criterion = nn.CrossEntropyLoss().to(device(FLAGS.device))
+  entity_start_accuracy = MulticlassAccuracy().to(device(FLAGS.device))
+  entity_stop_accuracy = MulticlassAccuracy().to(device(FLAGS.device))
+  entity_tag_accuracy = MulticlassAccuracy().to(device(FLAGS.device))
+  relation_head_accuracy = MulticlassAccuracy().to(device(FLAGS.device))
+  relation_tail_accuracy = MulticlassAccuracy().to(device(FLAGS.device))
+  relation_tag_accuracy = MulticlassAccuracy().to(device(FLAGS.device))
   optimizer = Adam(model.parameters(), lr = FLAGS.lr)
   scheduler = CosineAnnealingWarmRestarts(optimizer, T_0 = 5, T_mult = 2)
   if dist.get_rank() == 0:
@@ -99,4 +105,26 @@ def main(unused_argv):
         relation_tails = sample['relation_tails'].to(device(FLAGS.device))
         relation_tags = sample['relation_tags'].to(device(FLAGS.device))
         pred_entity_starts, pred_entity_ends, pred_entity_tags, pred_relation_heads, pred_relation_tails, pred_tags = model(input_ids, attention_mask)
-        
+        entity_start_accuracy.update(pred_entity_starts, entity_starts)
+        entity_stop_accuracy.update(pred_entity_stops, entity_stops)
+        entity_tag_accuracy.update(pred_entity_tags, entity_tags)
+        relation_head_accuracy.update(pred_relation_heads, relation_heads)
+        relation_tail_accuracy.update(pred_relation_tails, relation_tails)
+        relation_tag_accuracy.update(pred_relation_tags, relation_tags)
+      tb_writer.add_scalar('entity_start_accuracy', entity_start_accuracy.compute(), global_steps)
+      tb_writer.add_scalar('entity_stop_accuracy', entity_stop_accuracy.compute(), global_steps)
+      tb_writer.add_scalar('entity_tag_accuracy', entity_tag_accuracy.compute(), global_steps)
+      tb_writer.add_scalar('relation_head_accuracy', relation_head_accuracy.compute(), global_steps)
+      tb_writer.add_scalar('relation_tail_accuracy', relation_tail_accuracy.compute(), global_steps)
+      tb_writer.add_scalar('relation_tag_accuracy', relation_tag_accuracy.compute(), global_steps)
+      ckpt = {
+        'epoch': epoch,
+        'state_dict': model.state_dict(),
+        'optimizer': optimizer.state_dict(),
+        'scheduler': scheduler}
+      save(ckpt, join(FLAGS.ckpt, 'model-ep%d.pth' % epoch))
+
+if __name__ == "__main__":
+  add_options()
+  app.run(main)
+

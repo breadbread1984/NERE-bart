@@ -38,7 +38,10 @@ def load_conll04(tokenizer):
   trainset.set_format(type = 'torch', columns = ['entity_starts', 'entity_stops', 'entity_tags', 'relation_heads', 'relation_tails', 'relation_tags'])
   valset = valset.map(preprocess)
   valset.set_format(type = 'torch', columns = ['entity_starts', 'entity_stops', 'entity_tags', 'relation_heads', 'relation_tails', 'relation_tags'])
-  return trainset, valset, max_entity_num, max_relation_num
+  return trainset, valset, {'entity_types': entity_types,
+                            'relation_types': relation_types,
+                            'max_entity_num': max_entity_num,
+                            'max_relation_num': max_relation_num}
 
 def load_docred():
   trainset = load_dataset('thunlp/docred', split = 'train_annotated', trust_remote_code = True)
@@ -49,7 +52,7 @@ if __name__ == "__main__":
   from transformers import AutoTokenizer
   from torch.utils.data import DataLoader
   tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base', add_prefix_space = True)
-  trainset, valset, me, mr = load_conll04(tokenizer)
+  trainset, valset, meta = load_conll04(tokenizer)
   train_loader = DataLoader(trainset, batch_size = 2)
   for sample in train_loader:
     print(sample['entity_starts'], type(sample['entity_starts']), sample['entity_starts'].shape)

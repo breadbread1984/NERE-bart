@@ -30,7 +30,7 @@ def main(unused_argv):
   tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base', add_prefix_space = True)
   trainset, evalset, meta = load_dataset(tokenizer)
   dist.init_process_group(backend = 'nccl')
-  torch.cuda_set_device(dist.get_rank())
+  torch.cuda.set_device(dist.get_rank())
   trainset_sampler = distributed.DistributedSampler(trainset)
   evalset_sampler = distributed.DistributedSampler(evalset)
   if dist.get_rank() == 0:

@@ -5,6 +5,7 @@ from os.path import join, exists, splitext
 import torch
 from torch import nn, device, save, load, no_grad, any, isnan, autograd, sinh, log
 import torch.distributed as dist
+from torch.utils.data import DataLoader, distributed
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torcheval.metrics import MulticlassAccuracy
 from transformers import AutoTokenizer

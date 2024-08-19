@@ -73,7 +73,7 @@ def main(unused_argv):
       attention_mask = sample['attention_mask'].to(device(FLAGS.device))
       entity_starts = sample['entity_starts'].to(device(FLAGS.device))
       entity_stops = sample['entity_stops'].to(device(FLAGS.device))
-      entity_tags = sample['entity_tags'].to(device(FlAGS.device))
+      entity_tags = sample['entity_tags'].to(device(FLAGS.device))
       relation_heads = sample['relation_heads'].to(device(FLAGS.device))
       relation_tails = sample['relation_tails'].to(device(FLAGS.device))
       relation_tags = sample['relation_tags'].to(device(FLAGS.device))

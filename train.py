@@ -8,6 +8,8 @@ import torch.distributed as dist
 from torch.utils.data import DataLoader, distributed
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torcheval.metrics import MulticlassAccuracy
+from torch.optim import Adam
+from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from transformers import AutoTokenizer
 from create_datasets import load_conll04
 from models import NERE

@@ -67,7 +67,7 @@ def main(unused_argv):
   for epoch in range(start_epoch, FLAGS.epochs):
     train_dataloader.sampler.set_epoch(epoch)
     model.train()
-    for step, sample in enumerate(train_data_loader):
+    for step, sample in enumerate(train_dataloader):
       optimizer.zero_grad()
       input_ids = sample['input_ids'].to(device(FLAGS.device))
       attention_mask = sample['attention_mask'].to(device(FLAGS.device))

@@ -29,9 +29,9 @@ def load_conll04(tokenizer):
       entity_starts.append(np.sum(tokens_per_word[:entity['start']]) + 1)
       entity_stops.append(np.sum(tokens_per_word[:entity['end']]) + 1)
       entity_tags.append(entity_types.index(entity['type']))
-    entity_starts = np.pad(np.concatenate(entity_starts, axis = 0), (0, max_entity_num - len(entity_starts)), constant_values = 0)
-    entity_stops = np.pad(np.concatenate(entity_stops, axis = 0), (0, max_entity_num - len(entity_stops)), constant_values = 0)
-    entity_tags = np.pad(np.concatenate(entity_tags, axis = 0), (0, max_entity_num - len(entity_tags)), constant_values = len(entity_types))
+    entity_starts = np.pad(np.stack(entity_starts, axis = 0), (0, max_entity_num - len(entity_starts)), constant_values = 0)
+    entity_stops = np.pad(np.stack(entity_stops, axis = 0), (0, max_entity_num - len(entity_stops)), constant_values = 0)
+    entity_tags = np.pad(np.stack(entity_tags, axis = 0), (0, max_entity_num - len(entity_tags)), constant_values = len(entity_types))
     relation_heads = list()
     relation_tails = list()
     relation_tags = list()
@@ -39,9 +39,9 @@ def load_conll04(tokenizer):
       relation_heads.append(relation['head'])
       relation_tails.append(relation['tail'])
       relation_tags.append(relation_types.index(relation['type']))
-    relation_heads = np.pad(np.concatenate(relation_heads, axis = 0), (0, max_relation_num - len(relation_heads)), constant_values = 0)
-    relation_tails = np.pad(np.concatenate(relation_tails, axis = 0), (0, max_relation_num - len(relation_tails)), constant_values = 0)
-    relation_tags = np.pad(np.concatenate(relation_tags, axis = 0), (0, max_relation_num - len(relation_tags)), constant_values = len(relation_types))
+    relation_heads = np.pad(np.stack(relation_heads, axis = 0), (0, max_relation_num - len(relation_heads)), constant_values = 0)
+    relation_tails = np.pad(np.stack(relation_tails, axis = 0), (0, max_relation_num - len(relation_tails)), constant_values = 0)
+    relation_tags = np.pad(np.stack(relation_tags, axis = 0), (0, max_relation_num - len(relation_tags)), constant_values = len(relation_types))
     return {'entity_starts': entity_starts, 'entity_stops': entity_stops, 'entity_tags': entity_tags,
             'relation_heads': relation_heads, 'relation_tails': relation_tails, 'relation_tags': relation_tags}
   return trainset.map(preprocess), valset.map(preprocess), max_entity_num, max_relation_num

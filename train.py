@@ -4,7 +4,7 @@ from absl import flags, app
 from os.path import join, exists, splitext
 import torch
 from torch import nn, device, save, load, no_grad, any, isnan, autograd, sinh, log
-from torch.distributed as dist
+import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torcheval.metrics import MulticlassAccuracy
 from transformers import AutoTokenizer

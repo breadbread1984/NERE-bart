@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import torch
 from torch import load, device
 from transformers import AutoTokenizer
 import numpy as np
@@ -89,7 +90,7 @@ class Predictor(object):
     return results
 
 if __name__ == "__main__":
-  pred = Predictor('ckpt/model.pth', 'cuda')
+  pred = Predictor('ckpt/model-ep220.pth', 'cuda')
   words = ['Newspaper', '`', 'Explains', "'", 'U.S.', 'Interests', 'Section', 'Events', 'FL1402001894', 'Havana', 'Radio', 'Reloj', 'Network', 'in', 'Spanish', '2100', 'GMT', '13', 'Feb', '94']
   entities, relations = pred(words)
   json = pred.to_json(words, entities, relations)

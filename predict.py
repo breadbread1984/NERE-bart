@@ -26,10 +26,10 @@ class Predictor(object):
   def __call__(self, text_or_words):
     if type(text_or_words) is str:
       text = text_or_words
-      inputs = self.tokenizer(text, return_tensors = 'pt', padding = 'max_length', max_length = 1024)
+      inputs = self.tokenizer(text, return_tensors = 'pt')
     elif type(text_or_words) is list:
       words = text_or_words
-      inputs = self.tokenizer([words], is_split_into_words = True, return_tensors = 'pt', padding = 'max_length', max_length = 1024)
+      inputs = self.tokenizer([words], is_split_into_words = True, return_tensors = 'pt')
     else:
       raise Exception('unknown input type!')
     input_ids, attention_mask = inputs['input_ids'].to(device(self.device)), inputs['attention_mask'].to(device(self.device))
@@ -54,11 +54,11 @@ class Predictor(object):
   def to_json(self, text_or_words, entities, relations):
     if type(text_or_words) is str:
       text = text_or_words
-      inputs = self.tokenizer(text, return_tensors = 'np', padding = 'max_length', max_length = 1024)
+      inputs = self.tokenizer(text, return_tensors = 'np')
     elif type(text_or_words) is list:
       words = text_or_words
       text = ' '.join(words)
-      inputs = self.tokenizer([words], is_split_into_words = True, return_tensors = 'np', padding = 'max_length', max_length = 1024)
+      inputs = self.tokenizer([words], is_split_into_words = True, return_tensors = 'np')
     tokens = inputs['input_ids'][0]
     results = {
       'original text': text,

@@ -18,6 +18,7 @@ class Predictor(object):
     self.max_entity_num = ckpt['max_entity_num']
     self.max_relation_num = ckpt['max_relation_num']
     self.model = NERE(len(self.entity_types), len(self.relation_types), max_entity_num = self.max_entity_num, max_relation_num = self.max_relation_num, rel_weight_mode = rel_weight_mode).to(device(dev))
+    self.model.load_state_dict(state_dict)
     self.model.eval()
     self.tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base', add_prefix_space = True)
     self.device = dev

@@ -48,4 +48,40 @@ class Predictor(object):
     entities = [(s,e,t) for s,e,t in zip(entity_start, entity_stop, entity_tag)]
     relations = [(h,t,c) for h,t,c in zip(relation_head, relation_tail, relation_tag) if 0 <= h < len(entities) and 0 <= t < len(entities) and h != t]
     return entities, relations
+  def to_json(self, text_or_words, entities, relations):
+    if type(text_or_words) is str:
+      text = text_or_words
+      inputs = self.tokenizer(text, return_tensors = 'np', padding = 'max_length', max_length = 1024)
+    elif type(text_or_words) is list:
+      words = text_or_words
+      text = ' '.join(words)
+      inputs = self.tokenizer([words], is_split_into_words = True, return_tensors = 'np', padding = 'max_length', max_length = 1024)
+    tokens = inputs['input_ids'][0][1:-1]
+    results = {
+      'original text': text,
+      'entities': [
+        {
+          'entity': self.tokenizer.decode(tokens[entity[0]:entity[1]], skip_special_tokens = True),
+          'start': entity[0],
+          'stop': entity[1],
+          'tag': self.entity_types[entity[2]],
+        } 
+        for entity in entities
+      ],
+      'relations': [
+        {
+          'head': self.tokenizer.decode(tokens[entities[relation[0]][0]:entities[relation[0]][1]], skip_special_tokens = True),
+          'tail': self.tokenizer.decode(tokens[entities[relation[1]][0]:entities[relation[1]][1]], skip_special_tokens = True),
+          'tag': self.relation_types[relation[2]]
+        }
+        for relation in relations
+      ]
+    }
+    return results
 
+if __name__ == "__main__":
+  pred = Predictor('ckpt/model-ep.pth', 'cuda')
+  words = ['Newspaper', '`', 'Explains', "'", 'U.S.', 'Interests', 'Section', 'Events', 'FL1402001894', 'Havana', 'Radio', 'Reloj', 'Network', 'in', 'Spanish', '2100', 'GMT', '13', 'Feb', '94']
+  entities, relations = pred(words)
+  json = pred.to_json(words, entities, relations)
+  print(json)

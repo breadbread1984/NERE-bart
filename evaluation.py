@@ -2,6 +2,7 @@
 
 from absl import flags, app
 from os.path import join, exists
+from transformers import AutoTokenizer
 from predict import Predictor
 from create_datasets import load_conll04
 

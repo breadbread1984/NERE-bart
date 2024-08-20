@@ -45,4 +45,7 @@ class Predictor(object):
     relation_head = np.boolean_mask(relation_tag != len(self.relation_types), relation_head) # relation_head.shape = (relation_num,)
     relation_tail = np.boolean_mask(relation_tag != len(self.relation_types), relation_tail) # relation_tail.shape = (relation_num,)
     relation_tag = np.boolean_mask(relation_tag != len(self.relation_types), relation_tag) # relation_tag.shape = (relation_num,)
+    entities = [(s,e,t) for s,e,t in zip(entity_start, entity_stop, entity_tag)]
+    relations = [(h,t,c) for h,t,c in zip(relation_head, relation_tail, relation_tag)]
+    return entities, relations
 

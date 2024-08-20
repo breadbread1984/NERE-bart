@@ -59,7 +59,7 @@ class Predictor(object):
       words = text_or_words
       text = ' '.join(words)
       inputs = self.tokenizer([words], is_split_into_words = True, return_tensors = 'np', padding = 'max_length', max_length = 1024)
-    tokens = inputs['input_ids'][0][1:-1]
+    tokens = inputs['input_ids'][0]
     results = {
       'original text': text,
       'entities': [

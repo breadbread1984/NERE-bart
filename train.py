@@ -21,9 +21,9 @@ FLAGS = flags.FLAGS
 def add_options():
   flags.DEFINE_enum('dataset', default = 'conll04', enum_values = {'conll04'}, help = 'available datasets')
   flags.DEFINE_string('ckpt', default = 'ckpt', help = 'path to checkpoint')
-  flags.DEFINE_float('lr', default = 5.e-5, help = 'learning rate')
+  flags.DEFINE_float('lr', default = 1.e-3, help = 'learning rate')
   flags.DEFINE_integer('batch_size', default = 32, help = 'batch size')
-  flags.DEFINE_integer('epochs', default = 50, help = 'number of epochs')
+  flags.DEFINE_integer('epochs', default = 300, help = 'number of epochs')
   flags.DEFINE_integer('workers', default = 16, help = 'number of workers')
   flags.DEFINE_enum('device', default = 'cuda', enum_values = {'cpu', 'cuda'}, help = 'device')
 

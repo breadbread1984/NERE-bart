@@ -51,7 +51,7 @@ def main(unused_argv):
     entity_starts = entity_starts[entity_tags != len(entity_types)]
     entity_stops = entity_stops[entity_tags != len(entity_types)]
     entity_tags = entity_tags[entity_tags != len(entity_tags)]
-    entity_labels = [(b,e,t) for b,e,t in zip(entity_starts, entity_stops, entity_tags)]
+    entity_labels = [(b,e,t) for b,e,t in zip(entity_starts.cpu().numpy().tolist(), entity_stops.cpu().numpy().tolist(), entity_tags.cpu().numpy().tolist())]
     relation_labels = [(h,t,c) for h,t,c in zip(relation_heads.cpu().numpy().tolist(), relation_tails.cpu().numpy().tolist(), relation_tags.cpu().numpy().tolist())]
     pred_entities.append(entity_preds)
     label_entities.append(entity_labels)

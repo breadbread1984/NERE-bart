@@ -23,16 +23,11 @@ class Predictor(object):
     self.model.eval()
     self.tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base', add_prefix_space = True)
     self.device = dev
-  def __call__(self, text_or_words):
-    if type(text_or_words) is str:
-      text = text_or_words
-      inputs = self.tokenizer(text, return_tensors = 'pt')
-    elif type(text_or_words) is list:
-      words = text_or_words
-      inputs = self.tokenizer([words], is_split_into_words = True, return_tensors = 'pt')
-    else:
-      raise Exception('unknown input type!')
-    input_ids, attention_mask = inputs['input_ids'].to(device(self.device)), inputs['attention_mask'].to(device(self.device))
+  def call(self, input_ids, attention_mask):
+    if 1 == len(input_ids.shape):
+      input_ids = torch.unsqueeze(input_ids, dim = 0)
+      attention_mask = torch.unsqueeze(attention_mask, dim = 0)
+    input_ids, attention_mask = input_ids.to(device(self.device)), attention_mask.to(device(self.device))
     entity_start, entity_stop, entity_tag, relation_head, relation_tail, relation_tag = self.model(input_ids, attention_mask)
     # 1) entities
     entity_start = np.argmax(entity_start.detach().cpu().numpy()[0], axis = -1) # entity_start.shape = (max_entity_num,)
@@ -51,6 +46,16 @@ class Predictor(object):
     entities = [(s,e,t) for s,e,t in zip(entity_start, entity_stop, entity_tag)]
     relations = [(h,t,c) for h,t,c in zip(relation_head, relation_tail, relation_tag) if 0 <= h < len(entities) and 0 <= t < len(entities) and h != t]
     return entities, relations
+  def __call__(self, text_or_words):
+    if type(text_or_words) is str:
+      text = text_or_words
+      inputs = self.tokenizer(text, return_tensors = 'pt')
+    elif type(text_or_words) is list:
+      words = text_or_words
+      inputs = self.tokenizer([words], is_split_into_words = True, return_tensors = 'pt')
+    else:
+      raise Exception('unknown input type!')
+    return self.call(inputs['input_ids'], inputs['attention_mask'])
   def to_json(self, text_or_words, entities, relations):
     if type(text_or_words) is str:
       text = text_or_words

@@ -35,12 +35,12 @@ def load_conll04(tokenizer, max_length = 1024):
     relation_heads = np.pad(np.stack(relation_heads, axis = 0), (0, max_relation_num - len(relation_heads)), constant_values = 0)
     relation_tails = np.pad(np.stack(relation_tails, axis = 0), (0, max_relation_num - len(relation_tails)), constant_values = 0)
     relation_tags = np.pad(np.stack(relation_tags, axis = 0), (0, max_relation_num - len(relation_tags)), constant_values = len(relation_types))
-    return {'input_ids': input_ids, 'attention_mask': attention_mask, 'entity_starts': entity_starts, 'entity_stops': entity_stops, 'entity_tags': entity_tags,
+    return {'words': sample['tokens'], 'input_ids': input_ids, 'attention_mask': attention_mask, 'entity_starts': entity_starts, 'entity_stops': entity_stops, 'entity_tags': entity_tags,
             'relation_heads': relation_heads, 'relation_tails': relation_tails, 'relation_tags': relation_tags}
   trainset = trainset.map(preprocess)
-  trainset.set_format(type = 'torch', columns = ['input_ids', 'attention_mask', 'entity_starts', 'entity_stops', 'entity_tags', 'relation_heads', 'relation_tails', 'relation_tags'])
+  trainset.set_format(type = 'torch', columns = ['words', 'input_ids', 'attention_mask', 'entity_starts', 'entity_stops', 'entity_tags', 'relation_heads', 'relation_tails', 'relation_tags'])
   valset = valset.map(preprocess)
-  valset.set_format(type = 'torch', columns = ['input_ids', 'attention_mask', 'entity_starts', 'entity_stops', 'entity_tags', 'relation_heads', 'relation_tails', 'relation_tags'])
+  valset.set_format(type = 'torch', columns = ['words', 'input_ids', 'attention_mask', 'entity_starts', 'entity_stops', 'entity_tags', 'relation_heads', 'relation_tails', 'relation_tags'])
   return trainset, valset, {'entity_types': entity_types,
                             'relation_types': relation_types,
                             'max_entity_num': max_entity_num,

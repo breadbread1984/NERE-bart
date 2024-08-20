@@ -36,16 +36,16 @@ class Predictor(object):
     entity_start = np.argmax(entity_start.detach().cpu().numpy()[0], axis = -1) # entity_start.shape = (max_entity_num,)
     entity_stop = np.argmax(entity_stop.detach().cpu().numpy()[0], axis = -1) # entity_stop.shape = (max_entity_num,)
     entity_tag = np.argmax(entity_tag.detach().cpu().numpy()[0], axis = -1) # entity_tag.shape = (max_entity_num,)
-    entity_start = np.boolean_mask(entity_tag != len(self.entity_types), entity_start) # entity_start.shape = (entity_num,)
-    entity_stop = np.boolean_mask(entity_tag != len(self.entity_types), entity_stop) # entity_stop.shape = (entity_num,)
-    entity_tag = np.boolean_mask(entity_tag != len(self.entity_types), entity_tag) # entity_tag.shape = (entity_num,)
+    entity_start = entity_start[entity_tag != len(self.entity_types)] # entity_start.shape = (entity_num,)
+    entity_stop = entity_stop[entity_tag != len(self.entity_types)] # entity_stop.shape = (entity_num,)
+    entity_tag = entity_tag[entity_tag != len(self.entity_types)] # entity_tag.shape = (entity_num,)
     # 2) relations
     relation_head = np.argmax(relation_head.detach().cpu().numpy()[0], axis = -1) # relation_head.shape = (max_relation_num,)
     relation_tail = np.argmax(relation_tail.detach().cpu().numpy()[0], axis = -1) # relation_head.shape = (max_relation_num,)
     relation_tag = np.argmax(relation_tag.detach().cpu().numpy()[0], axis = -1) # relation_tag.shape = (max_relation_num,)
-    relation_head = np.boolean_mask(relation_tag != len(self.relation_types), relation_head) # relation_head.shape = (relation_num,)
-    relation_tail = np.boolean_mask(relation_tag != len(self.relation_types), relation_tail) # relation_tail.shape = (relation_num,)
-    relation_tag = np.boolean_mask(relation_tag != len(self.relation_types), relation_tag) # relation_tag.shape = (relation_num,)
+    relation_head = relation_head[relation_tag != len(self.relation_types)] # relation_head.shape = (relation_num,)
+    relation_tail = relation_tail[relation_tag != len(self.relation_types)] # relation_tail.shape = (relation_num,)
+    relation_tag = relation_tag[relation_tag != len(self.relation_types)] # relation_tag.shape = (relation_num,)
     entities = [(s,e,t) for s,e,t in zip(entity_start, entity_stop, entity_tag)]
     relations = [(h,t,c) for h,t,c in zip(relation_head, relation_tail, relation_tag) if 0 <= h < len(entities) and 0 <= t < len(entities) and h != t]
     return entities, relations

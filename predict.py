@@ -2,6 +2,7 @@
 
 from torch import load, device
 from transformers import AutoTokenizer
+import numpy as np
 from models import NERE
 
 class Predictor(object):

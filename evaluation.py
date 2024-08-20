@@ -12,6 +12,22 @@ def add_options():
   flags.DEFINE_string('ckpt', default = 'ckpt', help = 'path to checkpoint')
   flags.DEFINE_enum('device', default = 'cuda', enum_values = {'cpu', 'cuda'}, help = 'device')
 
+def get_metrics(preds_list, labels_list):
+  # NOTE: copy code from https://github.com/LorrinWWW/two-are-better-than-one/blob/a75de25e436a02f58bc512de2f841d621be40daa/data/joint_data.py#L127
+  n_correct, n_pred, n_label = 0, 0, 0
+  i_count = 0
+  for preds, labels in zip(preds_list, labels_list):
+    preds = set(preds)
+    labels = {tuple(x) for x in labels}
+    n_pred += len(preds)
+    n_label += len(labels)
+    n_correct += len(preds & labels)
+    i_count += 1
+  precision = n_correct / (n_pred + 1e-8)
+  recall = n_correct / (n_label + 1e-8)
+  f1 = 2 / (1/(precision+1e-8) + 1/(recall+1e-8) + 1e-8)
+  return precision, recall, f1
+
 def main(unused_argv):
   if not exists(join(FLAGS.ckpt, 'model.pth')):
     raise Exception('cannot find model.pth under directory designated by FLAGS.ckpt')
@@ -38,5 +54,13 @@ def main(unused_argv):
     relation_labels = [(h,t,c) for h,t,c in zip(relation_heads, relation_tails, relation_tags)]
     pred_entities.append(entity_preds)
     label_entities.append(entity_labels)
+    pred_relations.append(relation_preds)
+    label_relations.append(relation_labels)
+  ent_prec, ent_rec, ent_f1 = get_metrics(pred_entities, label_entities)
+  rel_prec, rel_rec, rel_f1 = get_metrics(pred_relations, label_relations)
+  print(f'entity| precision: {ent_prec} recall: {ent_rec} f1: {ent_f1}\n')
+  print(f'relation| precision: {rel_prec} recall: {rel_rec} f1: {rel_f1}\n')
 
-
+if __name__ == "__main__":
+  add_options()
+  app.run(main)

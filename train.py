@@ -132,6 +132,7 @@ def main(unused_argv):
         **meta
       }
       save(ckpt, join(FLAGS.ckpt, 'model-ep%d.pth' % epoch))
+      save(ckpt, join(FLAGS.ckpt, 'model.pth'))
 
 if __name__ == "__main__":
   add_options()

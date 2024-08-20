@@ -27,6 +27,8 @@ class Predictor(object):
     elif type(text_or_words) is list:
       words = text_or_words
       inputs = self.tokenizer([words], is_split_into_words = True, return_tensors = 'pt', padding = 'max_length', max_length = 1024)
+    else:
+      raise Exception('unknown input type!')
     input_ids, attention_mask = inputs['input_ids'].to(device(self.device)), inputs['attention_mask'].to(device(self.device))
     entity_start, entity_stop, entity_tag, relation_head, relation_tail, relation_tag = self.model(input_ids, attention_mask)
     # 1) entities

@@ -16,7 +16,7 @@ class Predictor(object):
     self.relation_types = ckpt['relation_types']
     self.max_entity_num = ckpt['max_entity_num']
     self.max_relation_num = ckpt['max_relation_num']
-    self.model = NERE(len(self.entity_types), len(self.relation_types), max_entity_num = self.max_entity_num, max_relation_num = self.max_relation_num, rel_weight_mode = rel_weight_mode)
+    self.model = NERE(len(self.entity_types), len(self.relation_types), max_entity_num = self.max_entity_num, max_relation_num = self.max_relation_num, rel_weight_mode = rel_weight_mode).to(device(dev))
     self.model.eval()
     self.tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base', add_prefix_space = True)
     self.device = dev
@@ -80,7 +80,7 @@ class Predictor(object):
     return results
 
 if __name__ == "__main__":
-  pred = Predictor('ckpt/model-ep.pth', 'cuda')
+  pred = Predictor('ckpt/model-ep199.pth', 'cuda')
   words = ['Newspaper', '`', 'Explains', "'", 'U.S.', 'Interests', 'Section', 'Events', 'FL1402001894', 'Havana', 'Radio', 'Reloj', 'Network', 'in', 'Spanish', '2100', 'GMT', '13', 'Feb', '94']
   entities, relations = pred(words)
   json = pred.to_json(words, entities, relations)

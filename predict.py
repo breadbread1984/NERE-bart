@@ -62,6 +62,7 @@ class Predictor(object):
     tokens = inputs['input_ids'][0]
     results = {
       'original text': text,
+      'tokens': tokens.tolist(),
       'entities': [
         {
           'entity': self.tokenizer.decode(tokens[entity[0]:entity[1]], skip_special_tokens = True),

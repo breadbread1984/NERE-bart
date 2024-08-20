@@ -7,13 +7,23 @@ from transformers import AutoTokenizer, BartModel
 from transformers.models.bart.modeling_bart import BartDecoder
 
 class NERE(nn.Module):
-  def __init__(self, entity_tag_num, relation_tag_num, max_entity_num = 10, max_relation_num = 10):
+  def __init__(self, entity_tag_num, relation_tag_num, max_entity_num = 10, max_relation_num = 10, rel_weight_mode = 'independent'):
+    assert rel_weight_mode in {'independent', 'shared', 'fixed'}
     super(NERE, self).__init__()
     self.max_entity_num = max_entity_num
     self.max_relation_num = max_relation_num
     self.tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base')
     self.encoder_and_entity_decoder = BartModel.from_pretrained('facebook/bart-base')
-    self.relation_decoder = BartModel.from_pretrained('facebook/bart-base').decoder
+    if rel_weight_mode == 'independent':
+      self.relation_decoder = BartModel.from_pretrained('facebook/bart-base').decoder
+    elif rel_weight_mode == 'shared':
+      self.relation_decoder = self.encoder_and_entity_decoder.decoder
+    elif rel_weight_mode == 'fixed':
+      self.relation_decoder = BartModel.from_pretrained('facebook/bart-base').decoder
+      for param in self.relation_decoder.parameters():
+        param.requires_grad = False
+    else:
+      raise Exception('unknown relation weight mode!')
     self.entity_embed = nn.Embedding(num_embeddings = max_entity_num, embedding_dim = self.encoder_and_entity_decoder.config.d_model)
     self.entity_start = nn.Linear(self.encoder_and_entity_decoder.config.d_model, self.encoder_and_entity_decoder.config.max_position_embeddings)
     self.entity_end = nn.Linear(self.encoder_and_entity_decoder.config.d_model, self.encoder_and_entity_decoder.config.max_position_embeddings)

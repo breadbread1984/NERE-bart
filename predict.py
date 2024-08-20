@@ -10,6 +10,7 @@ class Predictor(object):
     assert dev in {'cuda', 'cpu'}
     ckpt = load(ckpt, map_location = device(dev))
     state_dict = ckpt['state_dict']
+    state_dict = {(key.replace('module.','') if key.startswith('module.') else key): value for key,value in state_dict.items()}
     optimizer = ckpt['optimizer']
     scheduler = ckpt['scheduler']
     rel_weight_mode = ckpt['rel_weight_mode']

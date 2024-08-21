@@ -19,7 +19,7 @@ def get_metrics(preds_list, labels_list):
   i_count = 0
   for preds, labels in zip(preds_list, labels_list):
     preds = set(preds)
-    labels = {tuple(x) for x in labels}
+    labels = set(labels)
     n_pred += len(preds)
     n_label += len(labels)
     n_correct += len(preds & labels)

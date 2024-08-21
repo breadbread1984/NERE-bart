@@ -111,9 +111,12 @@ def main(unused_argv):
         entity_preds, relation_preds = predictor.call(sample['input_ids'], sample['attention_mask'])
         entity_starts, entity_stops, entity_tags = sample['entity_starts'], sample['entity_stops'], sample['entity_tags']
         relation_heads, relation_tails, relation_tags = sample['relation_heads'], sample['relation_tails'], sample['relation_tags']
-        entity_starts = entity_starts[entity_tags != len(entity_types)]
-        entity_stops = entity_stops[entity_tags != len(entity_types)]
-        entity_tags = entity_tags[entity_tags != len(entity_tags)]
+        entity_starts = entity_starts[entity_tags != len(meta['entity_types'])]
+        entity_stops = entity_stops[entity_tags != len(meta['entity_types'])]
+        entity_tags = entity_tags[entity_tags != len(meta['entity_types'])]
+        relation_heads = relation_heads[relation_tags != len(meta['relation_types'])]
+        relation_tails = relation_tails[relation_tags != len(meta['relation_types'])]
+        relation_tags = relation_tags[relation_tags != len(meta['relation_types'])]
         entity_labels = [(b,e,t) for b,e,t in zip(entity_starts.cpu().numpy().tolist(), entity_stops.cpu().numpy().tolist(), entity_tags.cpu().numpy().tolist())]
         relation_labels = [(h,t,c) for h,t,c in zip(relation_heads.cpu().numpy().tolist(), relation_tails.cpu().numpy().tolist(), relation_tags.cpu().numpy().tolist())]
         pred_entities.append(entity_preds)

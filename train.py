@@ -15,6 +15,8 @@ from torch.utils.tensorboard import SummaryWriter
 from transformers import AutoTokenizer
 from create_datasets import load_conll04
 from models import NERE
+from predict import Predictor
+from evaluation import get_metrics
 
 FLAGS = flags.FLAGS
 
@@ -38,7 +40,6 @@ def main(unused_argv):
   dist.init_process_group(backend = 'nccl')
   torch.cuda.set_device(dist.get_rank())
   trainset_sampler = distributed.DistributedSampler(trainset)
-  evalset_sampler = distributed.DistributedSampler(evalset)
   if dist.get_rank() == 0:
     print('trainset size: %d, evalset size: %d' % (len(trainset), len(evalset)))
   train_dataloader = DataLoader(trainset, batch_size = FLAGS.batch_size, shuffle = False, num_workers = FLAGS.workers, sampler = trainset_sampler, pin_memory = False)
@@ -47,12 +48,6 @@ def main(unused_argv):
   model.to(device(FLAGS.device))
   model = DDP(model, device_ids=[dist.get_rank()], output_device=dist.get_rank(), find_unused_parameters=True)
   criterion = nn.CrossEntropyLoss().to(device(FLAGS.device))
-  entity_start_accuracy = MulticlassAccuracy().to(device(FLAGS.device))
-  entity_stop_accuracy = MulticlassAccuracy().to(device(FLAGS.device))
-  entity_tag_accuracy = MulticlassAccuracy().to(device(FLAGS.device))
-  relation_head_accuracy = MulticlassAccuracy().to(device(FLAGS.device))
-  relation_tail_accuracy = MulticlassAccuracy().to(device(FLAGS.device))
-  relation_tag_accuracy = MulticlassAccuracy().to(device(FLAGS.device))
   optimizer = Adam(model.parameters(), lr = FLAGS.lr)
   scheduler = CosineAnnealingWarmRestarts(optimizer, T_0 = 5, T_mult = 2)
   if dist.get_rank() == 0:
@@ -99,30 +94,6 @@ def main(unused_argv):
         tb_writer.add_scalar('relation tag loss', loss6, global_steps)
     scheduler.step()
     if dist.get_rank() == 0:
-      eval_dataloader.sampler.set_epoch(epoch)
-      model.eval()
-      for sample in eval_dataloader:
-        input_ids = sample['input_ids'].to(device(FLAGS.device))
-        attention_mask = sample['attention_mask'].to(device(FLAGS.device))
-        entity_starts = sample['entity_starts'].to(device(FLAGS.device))
-        entity_stops = sample['entity_stops'].to(device(FLAGS.device))
-        entity_tags = sample['entity_tags'].to(device(FLAGS.device))
-        relation_heads = sample['relation_heads'].to(device(FLAGS.device))
-        relation_tails = sample['relation_tails'].to(device(FLAGS.device))
-        relation_tags = sample['relation_tags'].to(device(FLAGS.device))
-        pred_entity_starts, pred_entity_stops, pred_entity_tags, pred_relation_heads, pred_relation_tails, pred_relation_tags = model(input_ids, attention_mask)
-        entity_start_accuracy.update(torch.flatten(pred_entity_starts, end_dim = -2), torch.flatten(entity_starts))
-        entity_stop_accuracy.update(torch.flatten(pred_entity_stops, end_dim = -2), torch.flatten(entity_stops))
-        entity_tag_accuracy.update(torch.flatten(pred_entity_tags, end_dim = -2), torch.flatten(entity_tags))
-        relation_head_accuracy.update(torch.flatten(pred_relation_heads, end_dim = -2), torch.flatten(relation_heads))
-        relation_tail_accuracy.update(torch.flatten(pred_relation_tails, end_dim = -2), torch.flatten(relation_tails))
-        relation_tag_accuracy.update(torch.flatten(pred_relation_tags, end_dim = -2), torch.flatten(relation_tags))
-      tb_writer.add_scalar('entity_start_accuracy', entity_start_accuracy.compute(), global_steps)
-      tb_writer.add_scalar('entity_stop_accuracy', entity_stop_accuracy.compute(), global_steps)
-      tb_writer.add_scalar('entity_tag_accuracy', entity_tag_accuracy.compute(), global_steps)
-      tb_writer.add_scalar('relation_head_accuracy', relation_head_accuracy.compute(), global_steps)
-      tb_writer.add_scalar('relation_tail_accuracy', relation_tail_accuracy.compute(), global_steps)
-      tb_writer.add_scalar('relation_tag_accuracy', relation_tag_accuracy.compute(), global_steps)
       ckpt = {
         'epoch': epoch,
         'state_dict': model.state_dict(),
@@ -133,6 +104,32 @@ def main(unused_argv):
       }
       save(ckpt, join(FLAGS.ckpt, 'model-ep%d.pth' % epoch))
       save(ckpt, join(FLAGS.ckpt, 'model.pth'))
+      predictor = Predictor(join(FLAGS.ckpt, 'model.pth'), dev = FLAGS.device)
+      pred_entities = list()
+      label_entities = list()
+      pred_relations = list()
+      label_relations = list()
+      for sample in evalset:
+        entity_preds, relation_preds = predictor.call(sample['input_ids'], sample['attention_mask'])
+        entity_starts, entity_stops, entity_tags = sample['entity_starts'], sample['entity_stops'], sample['entity_tags']
+        relation_heads, relation_tails, relation_tags = sample['relation_heads'], sample['relation_tails'], sample['relation_tags']
+        entity_starts = entity_starts[entity_tags != len(entity_types)]
+        entity_stops = entity_stops[entity_tags != len(entity_types)]
+        entity_tags = entity_tags[entity_tags != len(entity_tags)]
+        entity_labels = [(b,e,t) for b,e,t in zip(entity_starts.cpu().numpy().tolist(), entity_stops.cpu().numpy().tolist(), entity_tags.cpu().numpy().tolist())]
+        relation_labels = [(h,t,c) for h,t,c in zip(relation_heads.cpu().numpy().tolist(), relation_tails.cpu().numpy().tolist(), relation_tags.cpu().numpy().tolist())]
+        pred_entities.append(entity_preds)
+        label_entities.append(entity_labels)
+        pred_relations.append(relation_preds)
+        label_relations.append(relation_labels)
+      ent_prec, ent_rec, ent_f1 = get_metrics(pred_entities, label_entities)
+      rel_prec, rel_rec, rel_f1 = get_metrics(pred_relations, label_relations)
+      tb_writer.add_scalar('entity_precision', ent_prec, global_steps)
+      tb_writer.add_scalar('entity_recall', ent_rec, global_steps)
+      tb_writer.add_scalar('entity_f1', ent_f1, global_steps)
+      tb_writer.add_scalar('relation_precision', rel_prec, global_steps)
+      tb_writer.add_scalar('relation_recall', rel_rec, global_steps)
+      tb_writer.add_scalar('relation_f1', rec_f1, global_steps)
 
 if __name__ == "__main__":
   add_options()

@@ -8,7 +8,6 @@ from torch import nn, device, save, load, no_grad, any, isnan, autograd, sinh, l
 import torch.distributed as dist
 from torch.utils.data import DataLoader, distributed
 from torch.nn.parallel import DistributedDataParallel as DDP
-from torcheval.metrics import MulticlassAccuracy
 from torch.optim import Adam
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from torch.utils.tensorboard import SummaryWriter

@@ -130,7 +130,7 @@ def main(unused_argv):
       tb_writer.add_scalar('entity_f1', ent_f1, global_steps)
       tb_writer.add_scalar('relation_precision', rel_prec, global_steps)
       tb_writer.add_scalar('relation_recall', rel_rec, global_steps)
-      tb_writer.add_scalar('relation_f1', rec_f1, global_steps)
+      tb_writer.add_scalar('relation_f1', rel_f1, global_steps)
 
 if __name__ == "__main__":
   add_options()

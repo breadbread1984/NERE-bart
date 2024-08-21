@@ -44,7 +44,7 @@ class Predictor(object):
     relation_head = relation_head[relation_tag != len(self.relation_types)] # relation_head.shape = (relation_num,)
     relation_tail = relation_tail[relation_tag != len(self.relation_types)] # relation_tail.shape = (relation_num,)
     relation_tag = relation_tag[relation_tag != len(self.relation_types)] # relation_tag.shape = (relation_num,)
-    entities = [(s,e,t) for s,e,t in zip(entity_start, entity_stop, entity_tag)]
+    entities = [(s,e,t) for s,e,t in zip(entity_start, entity_stop, entity_tag) if s < e]
     relations = [(h,t,c) for h,t,c in zip(relation_head, relation_tail, relation_tag) if 0 <= h < len(entities) and 0 <= t < len(entities) and h != t]
     return entities, relations
   def __call__(self, text_or_words):

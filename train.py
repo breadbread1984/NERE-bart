@@ -27,7 +27,6 @@ def add_options():
   flags.DEFINE_integer('epochs', default = 300, help = 'number of epochs')
   flags.DEFINE_integer('workers', default = 16, help = 'number of workers')
   flags.DEFINE_enum('device', default = 'cuda', enum_values = {'cpu', 'cuda'}, help = 'device')
-  flags.DEFINE_enum('rel_weight_mode', default = 'independent', enum_values = {'independent','shared','fixed'}, help = 'how the relation decoder\'s weight are maintained')
 
 def main(unused_argv):
   load_dataset = {
@@ -42,7 +41,7 @@ def main(unused_argv):
   if dist.get_rank() == 0:
     print('trainset size: %d, evalset size: %d' % (len(trainset), len(evalset)))
   train_dataloader = DataLoader(trainset, batch_size = FLAGS.batch_size, shuffle = False, num_workers = FLAGS.workers, sampler = trainset_sampler, pin_memory = False)
-  model = NERE(len(meta['entity_types']), len(meta['relation_types']), max_entity_num = meta['max_entity_num'], max_relation_num = meta['max_relation_num'], rel_weight_mode = FLAGS.rel_weight_mode)
+  model = NERE(len(meta['entity_types']), len(meta['relation_types']), max_entity_num = meta['max_entity_num'], max_relation_num = meta['max_relation_num'])
   model.to(device(FLAGS.device))
   model = DDP(model, device_ids=[dist.get_rank()], output_device=dist.get_rank(), find_unused_parameters=True)
   criterion = nn.CrossEntropyLoss().to(device(FLAGS.device))
@@ -97,7 +96,6 @@ def main(unused_argv):
         'state_dict': model.state_dict(),
         'optimizer': optimizer.state_dict(),
         'scheduler': scheduler,
-        'rel_weight_mode': FLAGS.rel_weight_mode,
         **meta
       }
       save(ckpt, join(FLAGS.ckpt, 'model-ep%d.pth' % epoch))

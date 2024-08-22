@@ -16,8 +16,8 @@ class NERE(nn.Module):
     self.encoder_and_entity_decoder = T5ForConditionalGeneration.from_pretrained('google/t5-v1_1-small')
     self.relation_decoder = T5ForConditionalGeneration.from_pretrained('google/t5-v1_1-small').decoder
     self.entity_embed = nn.Embedding(num_embeddings = max_entity_num, embedding_dim = self.encoder_and_entity_decoder.config.d_model)
-    self.entity_start = nn.Linear(self.encoder_and_entity_decoder.config.d_model, self.encoder_and_entity_decoder.config.max_position_embeddings)
-    self.entity_end = nn.Linear(self.encoder_and_entity_decoder.config.d_model, self.encoder_and_entity_decoder.config.max_position_embeddings)
+    self.entity_start = nn.Linear(self.encoder_and_entity_decoder.config.d_model, 1024)
+    self.entity_end = nn.Linear(self.encoder_and_entity_decoder.config.d_model, 1024)
     self.entity_tag = nn.Linear(self.encoder_and_entity_decoder.config.d_model, entity_tag_num + 1)
     self.relation_embed = nn.Embedding(num_embeddings = max_relation_num, embedding_dim = self.encoder_and_entity_decoder.config.d_model)
     self.relation_head = nn.Linear(self.encoder_and_entity_decoder.config.d_model, max_entity_num)

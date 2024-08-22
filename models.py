@@ -4,7 +4,6 @@ import torch
 from torch import nn, device
 from torch.nn import functional as F
 from transformers import AutoTokenizer, T5ForConditionalGeneration
-from transformers.models.t5.modeling_t5 import T5Stack
 
 class NERE(nn.Module):
   def __init__(self, entity_tag_num, relation_tag_num, max_entity_num = 10, max_relation_num = 10):

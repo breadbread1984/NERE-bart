@@ -28,7 +28,7 @@ class NERE(nn.Module):
     entity_embed_inputs = torch.tile(torch.unsqueeze(torch.range(0, self.max_entity_num - 1, dtype = torch.int32), dim = 0), (input_ids.shape[0], 1)) # entity_embed_inputs.shape = (batch, max_entity_num)
     entity_embed_inputs = entity_embed_inputs.to(self.encoder_and_entity_decoder.device)
     entity_embed_inputs = self.entity_embed(entity_embed_inputs) # entity_embed_inputs.shape = (batch, max_entity_num, d_model)
-    outputs = self.encoder_and_entity_decoder(input_ids = input_ids, attention_mask = attention_mask, decoder_inputs_embeds = entity_embed_inputs)
+    outputs = self.encoder_and_entity_decoder(input_ids = input_ids, attention_mask = attention_mask, decoder_inputs_embeds = entity_embed_inputs, output_hidden_states = True)
     encoder_outputs = outputs.encoder_hidden_states
     decoder_outputs = outputs.decoder_hidden_states # last_hidden_state.shape = (batch, max_length, hidden_dim)
     # entity start

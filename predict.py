@@ -14,12 +14,11 @@ class Predictor(object):
     state_dict = {(key.replace('module.','') if key.startswith('module.') else key): value for key,value in state_dict.items()}
     optimizer = ckpt['optimizer']
     scheduler = ckpt['scheduler']
-    rel_weight_mode = ckpt['rel_weight_mode']
     self.entity_types = ckpt['entity_types']
     self.relation_types = ckpt['relation_types']
     self.max_entity_num = ckpt['max_entity_num']
     self.max_relation_num = ckpt['max_relation_num']
-    self.model = NERE(len(self.entity_types), len(self.relation_types), max_entity_num = self.max_entity_num, max_relation_num = self.max_relation_num, rel_weight_mode = rel_weight_mode).to(device(dev))
+    self.model = NERE(len(self.entity_types), len(self.relation_types), max_entity_num = self.max_entity_num, max_relation_num = self.max_relation_num).to(device(dev))
     self.model.load_state_dict(state_dict)
     self.model.eval()
     self.tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base', add_prefix_space = True)

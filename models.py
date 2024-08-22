@@ -54,7 +54,7 @@ class NERE(nn.Module):
       batch_entities_hidden.append(torch.cat([entities_hidden, torch.ones((self.max_entity_num - entities_hidden.shape[0], entities_hidden.shape[1])).to(entities_hidden.device)], dim = 0))
       attention_mask = torch.cat([torch.ones(entities_hidden.shape[0]), torch.zeros(self.max_entity_num - entities_hidden.shape[0])], dim = 0).to(entities_hidden.device)
       # to prevent softmax yield nan
-      attention_mask = torch.cat([torch.ones(self.max_entity_num - 1), torch.zeros(1)], dim = 0).to(entities_hidden.device) if not torch.any(attention_mask) else attention_mask
+      attention_mask = torch.cat([torch.zeros(self.max_entity_num - 1), torch.ones(1)], dim = 0).to(entities_hidden.device) if not torch.any(attention_mask) else attention_mask
       batch_entities_mask.append(attention_mask)
     entities_hidden = torch.stack(batch_entities_hidden) # entities_hidden.shape = (batch, max_entity_num, hidden_dim)
     entities_mask = torch.stack(batch_entities_mask) # entities_mask.shape = (batch, max_entity_num)

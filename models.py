@@ -62,7 +62,7 @@ class NERE(nn.Module):
     relation_embed_inputs = relation_embed_inputs.to(self.encoder_and_entity_decoder.device)
     relation_embed_inputs = self.relation_embed(relation_embed_inputs) # relation_embed_inputs.shape = (batch, max_relation_num, d_model)
     outputs = self.relation_decoder(encoder_hidden_states = entities_hidden, encoder_attention_mask = entities_mask, inputs_embeds = relation_embed_inputs)
-    decoder_outputs = outputs.decoder_hidden_states
+    decoder_outputs = outputs.last_hidden_states
     # relation head
     relation_head = self.relation_head(decoder_outputs)
     # relation tail

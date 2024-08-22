@@ -29,8 +29,8 @@ class NERE(nn.Module):
     entity_embed_inputs = entity_embed_inputs.to(self.encoder_and_entity_decoder.device)
     entity_embed_inputs = self.entity_embed(entity_embed_inputs) # entity_embed_inputs.shape = (batch, max_entity_num, d_model)
     outputs = self.encoder_and_entity_decoder(input_ids = input_ids, attention_mask = attention_mask, decoder_inputs_embeds = entity_embed_inputs, output_hidden_states = True)
-    encoder_outputs = outputs.encoder_hidden_states
-    decoder_outputs = outputs.decoder_hidden_states # last_hidden_state.shape = (batch, max_length, hidden_dim)
+    encoder_outputs = outputs.encoder_hidden_states[-1]
+    decoder_outputs = outputs.decoder_hidden_states[-1] # last_hidden_state.shape = (batch, max_length, hidden_dim)
     # entity start
     entity_start = self.entity_start(decoder_outputs)
     # entity end

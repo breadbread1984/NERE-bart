@@ -30,13 +30,14 @@ class NERE(nn.Module):
     entity_embed_inputs = entity_embed_inputs.to(self.encoder_and_entity_decoder.device)
     entity_embed_inputs = self.entity_embed(entity_embed_inputs) # entity_embed_inputs.shape = (batch, max_entity_num, d_model)
     outputs = self.encoder_and_entity_decoder(input_ids = input_ids, attention_mask = attention_mask, decoder_inputs_embeds = entity_embed_inputs)
-    last_hidden_states = outputs.last_hidden_state # last_hidden_state.shape = (batch, max_length, hidden_dim)
+    encoder_outputs = outputs.encoder_last_hidden_state
+    decoder_outputs = outputs.last_hidden_state # last_hidden_state.shape = (batch, max_length, hidden_dim)
     # entity start
-    entity_start = self.entity_start(last_hidden_states)
+    entity_start = self.entity_start(decoder_outputs)
     # entity end
-    entity_end = self.entity_end(last_hidden_states)
+    entity_end = self.entity_end(decoder_outputs)
     # entity tag
-    entity_tag = self.entity_tag(last_hidden_states)
+    entity_tag = self.entity_tag(decoder_outputs)
     entity_start_idx = torch.argmax(entity_start, dim = -1) # entity_start_idx.shape = (batch, max_entity_num)
     entity_end_idx = torch.argmax(entity_end, dim = -1) # entity_end_idx.shape = (batch, max_entity_num)
     entity_tag_idx = torch.argmax(entity_tag, dim = -1) # entity_tag_idx.shape = (batch, max_entity_num)
@@ -45,7 +46,7 @@ class NERE(nn.Module):
     mask = torch.logical_and(entity_mask, valid_mask) # mask.shape = (batch, max_entity_num)
     batch_entities_hidden = list()
     batch_entities_mask = list()
-    for hidden, start, end, mask in zip(last_hidden_states, entity_start_idx, entity_end_idx, mask):
+    for hidden, start, end, mask in zip(encoder_outputs, entity_start_idx, entity_end_idx, mask):
       start = torch.masked_select(start, mask) # start.shape = (entity_num,)
       end = torch.masked_select(end, mask) # end.shape = (entity_num,)
       entities_hidden = torch.cat([torch.unsqueeze(torch.mean(hidden[s:e], dim = 0), dim = 0) for s, e in zip(start, end)], dim = 0) # entities_hidden.shape = (entity_num, hidden_dim)
@@ -58,13 +59,13 @@ class NERE(nn.Module):
     relation_embed_inputs = relation_embed_inputs.to(self.encoder_and_entity_decoder.device)
     relation_embed_inputs = self.relation_embed(relation_embed_inputs) # relation_embed_inputs.shape = (batch, max_relation_num, d_model)
     outputs = self.relation_decoder(encoder_hidden_states = entities_hidden, encoder_attention_mask = entities_mask, inputs_embeds = relation_embed_inputs)
-    last_hidden_states = outputs.last_hidden_state
+    decoder_outputs = outputs.last_hidden_state
     # relation head
-    relation_head = self.relation_head(last_hidden_states)
+    relation_head = self.relation_head(decoder_outputs)
     # relation tail
-    relation_tail = self.relation_tail(last_hidden_states)
+    relation_tail = self.relation_tail(decoder_outputs)
     # relation tag
-    relation_tag = self.relation_tag(last_hidden_states)
+    relation_tag = self.relation_tag(decoder_outputs)
     return entity_start, entity_end, entity_tag, relation_head, relation_tail, relation_tag
 
 if __name__ == "__main__":

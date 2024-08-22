@@ -49,7 +49,8 @@ class NERE(nn.Module):
     for hidden, start, end, mask in zip(encoder_outputs, entity_start_idx, entity_end_idx, mask):
       start = torch.masked_select(start, mask) # start.shape = (entity_num,)
       end = torch.masked_select(end, mask) # end.shape = (entity_num,)
-      entities_hidden = torch.cat([torch.unsqueeze(torch.mean(hidden[s:e], dim = 0), dim = 0) for s, e in zip(start, end)], dim = 0) # entities_hidden.shape = (entity_num, hidden_dim)
+      entities_hidden = [torch.mean(hidden[s:e], dim = 0) for s, e in zip(start, end)]
+      entities_hidden = torch.stack(entities_hidden, dim = 0) if len(entities_hidden) else torch.zeros(0, hidden.shape[-1]).to(hidden.device) # entities_hidden.shape = (entity_num, hidden_dim)
       batch_entities_hidden.append(torch.cat([entities_hidden, torch.zeros((self.max_entity_num - entities_hidden.shape[0], entities_hidden.shape[1])).to(entities_hidden.device)], dim = 0))
       batch_entities_mask.append(torch.cat([torch.ones(entities_hidden.shape[0]), torch.zeros(self.max_entity_num - entities_hidden.shape[0])], dim = 0).to(entities_hidden.device))
     entities_hidden = torch.stack(batch_entities_hidden) # entities_hidden.shape = (batch, max_entity_num, hidden_dim)

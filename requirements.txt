@@ -4,4 +4,4 @@ absl-py
 transformers
 datasets
 numpy
-tokenizers
+sentencepiece

@@ -49,8 +49,8 @@ class NERE(nn.Module):
       start = torch.masked_select(start, mask) # start.shape = (entity_num,)
       end = torch.masked_select(end, mask) # end.shape = (entity_num,)
       entities_hidden = torch.stack([torch.mean(hidden[s:e], dim = 0) for s, e in zip(start, end)]) # entities_hidden.shape = (entity_num, hidden_dim)
-      batch_entities_hidden.append(torch.cat([entities_hidden, torch.zeros((self.max_entity_num - entities_hidden.shape[0], entities_hidden.shape[1]))], dim = 0))
-      batch_entities_mask.append(torch.cat([torch.ones(entities_hidden.shape[0]), torch.zeros(self.max_entity_num - entities_hidden.shape[0])], dim = 0))
+      batch_entities_hidden.append(torch.cat([entities_hidden, torch.zeros((self.max_entity_num - entities_hidden.shape[0], entities_hidden.shape[1])).to(entities_hidden.device)], dim = 0))
+      batch_entities_mask.append(torch.cat([torch.ones(entities_hidden.shape[0]), torch.zeros(self.max_entity_num - entities_hidden.shape[0]).to(entities_hidden.device)], dim = 0))
     entities_hidden = torch.stack(batch_entities_hidden) # entities_hidden.shape = (batch, max_entity_num, hidden_dim)
     entities_mask = torch.stack(batch_entities_mask) # entities_mask.shape = (batch, max_entity_num)
     # 2) relationship prediction

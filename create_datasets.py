@@ -54,7 +54,7 @@ def load_docred():
 if __name__ == "__main__":
   from transformers import AutoTokenizer
   from torch.utils.data import DataLoader
-  tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base', add_prefix_space = True)
+  tokenizer = AutoTokenizer.from_pretrained('google/t5-v1_1-small')
   trainset, valset, meta = load_conll04(tokenizer)
   train_loader = DataLoader(trainset, batch_size = 2)
   for sample in train_loader:

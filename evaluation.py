@@ -51,7 +51,7 @@ def main(unused_argv):
   load_dataset = {
     'conll04': load_conll04,
   }[FLAGS.dataset]
-  tokenizer = AutoTokenizer.from_pretrained('google/t5-v1_1-small', add_prefix_space = True)
+  tokenizer = AutoTokenizer.from_pretrained('google/t5-v1_1-small')
   _, evalset, meta = load_dataset(tokenizer)
   entity_types = meta['entity_types']
   relation_types = meta['relation_types']

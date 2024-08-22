@@ -96,7 +96,6 @@ def main(unused_argv):
         'state_dict': model.state_dict(),
         'optimizer': optimizer.state_dict(),
         'scheduler': scheduler,
-        'rel_weight_mode': FLAGS.rel_weight_mode,
         **meta
       }
       save(ckpt, join(FLAGS.ckpt, 'model-ep%d.pth' % epoch))

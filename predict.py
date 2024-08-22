@@ -21,7 +21,7 @@ class Predictor(object):
     self.model = NERE(len(self.entity_types), len(self.relation_types), max_entity_num = self.max_entity_num, max_relation_num = self.max_relation_num).to(device(dev))
     self.model.load_state_dict(state_dict)
     self.model.eval()
-    self.tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base', add_prefix_space = True)
+    self.tokenizer = AutoTokenizer.from_pretrained('google/t5-v1_1-small', add_prefix_space = True)
     self.device = dev
   def call(self, input_ids, attention_mask):
     if 1 == len(input_ids.shape):

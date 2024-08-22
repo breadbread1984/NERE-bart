@@ -3,8 +3,8 @@
 import torch
 from torch import nn, device
 from torch.nn import functional as F
-from transformers import AutoTokenizer, BartModel
-from transformers.models.bart.modeling_bart import BartDecoder
+from transformers import AutoTokenizer, T5ForConditionalGeneration
+from transformers.models.t5.modeling_t5 import T5Stack
 
 class NERE(nn.Module):
   def __init__(self, entity_tag_num, relation_tag_num, max_entity_num = 10, max_relation_num = 10):
@@ -13,9 +13,9 @@ class NERE(nn.Module):
     self.relation_tag_num = relation_tag_num
     self.max_entity_num = max_entity_num
     self.max_relation_num = max_relation_num
-    self.tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base')
-    self.encoder_and_entity_decoder = BartModel.from_pretrained('facebook/bart-base')
-    self.relation_decoder = BartModel.from_pretrained('facebook/bart-base').decoder
+    self.tokenizer = AutoTokenizer.from_pretrained('google/t5-v1_1-small')
+    self.encoder_and_entity_decoder = T5ForConditionalGeneration.from_pretrained('google/t5-v1_1-small')
+    self.relation_decoder = T5ForConditionalGeneration.from_pretrained('google/t5-v1_1-small').decoder
     self.entity_embed = nn.Embedding(num_embeddings = max_entity_num, embedding_dim = self.encoder_and_entity_decoder.config.d_model)
     self.entity_start = nn.Linear(self.encoder_and_entity_decoder.config.d_model, self.encoder_and_entity_decoder.config.max_position_embeddings)
     self.entity_end = nn.Linear(self.encoder_and_entity_decoder.config.d_model, self.encoder_and_entity_decoder.config.max_position_embeddings)
@@ -75,7 +75,7 @@ class NERE(nn.Module):
 if __name__ == "__main__":
   d = 'cuda'
   model = NERE(entity_tag_num = 7, relation_tag_num = 5, max_entity_num = 14, max_relation_num = 10).to(device(d))
-  tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base', add_prefix_space = True)
+  tokenizer = AutoTokenizer.from_pretrained('google/t5-v1_1-small', add_prefix_space = True)
   inputs = tokenizer(["Hello, my dog is cute", "Hello the world!"], return_tensors = 'pt', padding = True)
   es,ee,et,rh,rt,rt = model(inputs['input_ids'].to(device(d)), inputs['attention_mask'].to(device(d)))
   print(es.shape,ee.shape,et.shape,rh.shape,rt.shape,rt.shape)

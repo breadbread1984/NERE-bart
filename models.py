@@ -4,7 +4,6 @@ import torch
 from torch import nn, device
 from torch.nn import functional as F
 from transformers import AutoTokenizer, BartModel
-from transformers.models.bart.modeling_bart import BartDecoder
 
 class NERE(nn.Module):
   def __init__(self, entity_tag_num, relation_tag_num, max_entity_num = 10, max_relation_num = 10):

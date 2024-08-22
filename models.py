@@ -8,7 +8,6 @@ from transformers.models.bart.modeling_bart import BartDecoder
 
 class NERE(nn.Module):
   def __init__(self, entity_tag_num, relation_tag_num, max_entity_num = 10, max_relation_num = 10):
-    assert rel_weight_mode in {'independent', 'shared', 'fixed'}
     super(NERE, self).__init__()
     self.entity_tag_num = entity_tag_num
     self.relation_tag_num = relation_tag_num

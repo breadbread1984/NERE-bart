@@ -29,18 +29,21 @@ def get_metrics(preds_list, labels_list, type_num):
   micro_f1 = 2 / (1/(precision+1e-8) + 1/(recall+1e-8) + 1e-8)
   # macro f1
   f1 = list()
+  n_correct = {i:0 for i in range(type_num)}
+  n_pred = {i:0 for i in range(type_num)}
+  n_label = {i:0 for i in range(type_num)}
+  for preds, labels in zip(preds_list, labels_list):
+    for i in range(type_num):
+      preds_i = list(filter(lambda x: x[2] == i, preds))
+      labels_i = list(filter(lambda x: x[2] == i, labels))
+      preds_i = set(preds_i)
+      labels_i = set(labels_i)
+      n_pred[i] += len(preds_i)
+      n_label[i] += len(labels_i)
+      n_correct[i] += len(preds_i & labels_i)
   for i in range(type_num):
-    n_correct, n_pred, n_label = 0,0,0
-    preds_list_i = list(filter(lambda x: x[2] == i, preds_list))
-    labels_list_i = list(filter(lambda x: x[2] == i, labels_list))
-    for preds, labels in zip(preds_list_i, labels_list_i):
-      preds = set(preds)
-      labels = set(labels)
-      n_pred += len(preds)
-      n_label += len(labels)
-      n_correct += len(preds & labels)
-    precision = n_correct / (n_pred + 1e-8) # TP_i / (TP_i + FP_i)
-    recall = n_correct / (n_label + 1e-8) # TP_i / (TP_i + FN_i)
+    precision = n_correct[i] / (n_pred[i] + 1e-8) # TP_i / (TP_i + FP_i)
+    recall = n_correct[i] / (n_label[i] + 1e-8) # TP_i / (TP_i + FN_i)
     f1.append(2 / (1/(precision+1e-8) + 1/(recall+1e-8) + 1e-8))
   macro_f1 = np.mean(f1)
   return precision, recall, micro_f1, macro_f1

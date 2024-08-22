@@ -98,7 +98,6 @@ def main(unused_argv):
         'scheduler': scheduler,
         **meta
       }
-      save(ckpt, join(FLAGS.ckpt, 'model-ep%d.pth' % epoch))
       save(ckpt, join(FLAGS.ckpt, 'model.pth'))
       predictor = Predictor(join(FLAGS.ckpt, 'model.pth'), dev = FLAGS.device)
       pred_entities = list()

@@ -54,7 +54,7 @@ def main(unused_argv):
   load_dataset = {
     'conll04': load_conll04,
   }[FLAGS.dataset]
-  tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base', add_prefix_space = True)
+  tokenizer = AutoTokenizer.from_pretrained('facebook/bart-large', add_prefix_space = True)
   _, evalset, meta = load_dataset(tokenizer)
   entity_types = meta['entity_types']
   relation_types = meta['relation_types']

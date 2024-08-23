@@ -33,7 +33,7 @@ def main(unused_argv):
     'conll04': load_conll04,
   }[FLAGS.dataset]
   autograd.set_detect_anomaly(True)
-  tokenizer = AutoTokenizer.from_pretrained('facebook/bart-base', add_prefix_space = True)
+  tokenizer = AutoTokenizer.from_pretrained('facebook/bart-large', add_prefix_space = True)
   trainset, evalset, meta = load_dataset(tokenizer)
   dist.init_process_group(backend = 'nccl')
   torch.cuda.set_device(dist.get_rank())

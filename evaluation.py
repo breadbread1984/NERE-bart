@@ -42,9 +42,9 @@ def get_metrics(preds_list, labels_list, type_num):
       n_label[i] += len(labels_i)
       n_correct[i] += len(preds_i & labels_i)
   for i in range(type_num):
-    precision = n_correct[i] / (n_pred[i] + 1e-8) # TP_i / (TP_i + FP_i)
-    recall = n_correct[i] / (n_label[i] + 1e-8) # TP_i / (TP_i + FN_i)
-    f1.append(2 / (1/(precision+1e-8) + 1/(recall+1e-8) + 1e-8))
+    precision_i = n_correct[i] / (n_pred[i] + 1e-8) # TP_i / (TP_i + FP_i)
+    recall_i = n_correct[i] / (n_label[i] + 1e-8) # TP_i / (TP_i + FN_i)
+    f1.append(2 / (1/(precision_i+1e-8) + 1/(recall_i+1e-8) + 1e-8))
   macro_f1 = np.mean(f1)
   return precision, recall, micro_f1, macro_f1
 

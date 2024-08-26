@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+from scipy.optimize import linear_sum_assignment
 import torch
 from torch import nn, device
 from torch.nn import functional as F
@@ -70,6 +71,58 @@ class NERE(nn.Module):
     # relation tag
     relation_tag = self.relation_tag(decoder_outputs)
     return entity_start, entity_end, entity_tag, relation_head, relation_tail, relation_tag
+
+class HungarianMatcher(nn.Module):
+  def __init__(self, entity_types):
+    super(HungarianMatcher, self).__init__()
+    self.entity_types = entity_types
+  @torch.no_grad()
+  def forward(self, start_pred, end_pred, tag_pred, start_label, end_label, tag_label):
+    # start_pred.shape = (batch, max_entity_num, max_seq_len)
+    # end_pred.shape = (batch, max_entity_num, max_seq_len)
+    # tag_pred.shape = (batch, max_entity_num, class_num)
+    # start_label.shape = (batch, max_entity_num)
+    # end_label.shape = (batch, max_entity_num)
+    # tag_label.shape = (batch, max_entity_num)
+    start_pred = torch.argmax(start_pred, dim = -1)
+    end_pred = torch.argmax(end_pred, dim = -1)
+    span_pred = torch.cat([start_pred, end_pred], dim = -1) # span_pred.shape = (batch, max_entity_num, 2)
+    span_label = torch.stack([start_label, end_label], dim = -1) # span_label.shape = (batch, max_entity_num, 2)
+    assignments = list()
+    for span_p, tag_p, span_l, tag_l in zip(span_pred, tag_pred, span_label, tag_label):
+      mask_p = tag_p < len(self.entity_types)
+      mask_l = tag_l < len(self.entity_types)
+      span_p = span_p[mask_p,:] # span_p.shape = (pred_target_num, 2)
+      span_l = span_l[mask_l,:] # span_l.shape = (label_target_num, 2)
+      # 1) span loss
+      span_p = torch.unsqueeze(span_p, dim = -2) # span_p.shape = (pred_target_num, 1, 2)
+      span_l = torch.unsqueeze(span_l, dim = -3) # span_l.shape = (1, label_target_num, 2)
+      span_loss = torch.cdist(span_p, span_l, p = 1) # span_loss.shape = (pred_target_num, label_target_num,1)
+      # 2) iou loss
+      span_p_left, _ = torch.min(span_p, dim = -1) # span_p_left.shape = (pred_target_num, 1)
+      span_p_right, _ = torch.max(span_p, dim = -1) # span_p_right.shape = (pred_target_num, 1)
+      span_l_left, _ = torch.min(span_l, dim = -1) # span_l_left.shape = (1, label_target_num)
+      span_l_right, _ = torch.max(span_l, dim = -1) # span_l_right.shape = (1, label_target_num)
+      intersect_left = torch.maximum(span_p_left, span_l_left) # intersect_left.shape = (pred_target_num, label_target_num)
+      intersect_right = torch.minimum(span_p_right, span_p_right) # intersect_right.shape = (pred_target_num, label_target_num)
+      intersect = torch.maximum(intersect_right - intersect_left, 0) # intersect.shape = (pred_target_num, label_target_num)
+      union_left = torch.minimum(span_p_left, span_l_left) # union_left.shape = (pred_target_num, label_target_num)
+      union_right = torch.maximum(span_p_right, span_l_right) # union_right.shape = (pred_target_num, label_target_num)
+      union = torch.maximum(union_right - union_right, 1e-10) # union.shape = (pred_target_num, label_target_num)
+      iou_loss = -intersect / union # iou.shape = (pred_target_num, label_target_num)
+      # 3) class loss
+      class_loss = -tag_p[:,tag_label] # class_loss.shape = (pred_target_num, label_target_num)
+      cost = span_loss + iou_loss + class_loss
+      i,j = linear_sum_assignment(cost.cpu().numpy())
+      assignments.append((torch.as_tensor(i, dtype = torch,int64), torch.as_tensor(j, dtype = torch.int64)))
+    return assignments
+
+class Criterion(nn.Module):
+  def __init__(self, entity_types):
+    super(Criterion, self).__init__()
+    self.matcher = HungarianMatcher(entity_types)
+  def forward(self, ):
+    pass
 
 if __name__ == "__main__":
   d = 'cuda'

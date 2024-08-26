@@ -98,6 +98,7 @@ class HungarianMatcher(nn.Module):
       span_p = torch.unsqueeze(span_p, dim = -2) # span_p.shape = (pred_target_num, 1, 2)
       span_l = torch.unsqueeze(span_l, dim = -3) # span_l.shape = (1, label_target_num, 2)
       span_loss = torch.cdist(span_p, span_l, p = 1) # span_loss.shape = (pred_target_num, label_target_num,1)
+      span_loss = torch.squeeze(span_loss, dim = -1) # span_loss.shape = (pred_target_num, label_target_num)
       # 2) iou loss
       span_p_left, _ = torch.min(span_p, dim = -1) # span_p_left.shape = (pred_target_num, 1)
       span_p_right, _ = torch.max(span_p, dim = -1) # span_p_right.shape = (pred_target_num, 1)

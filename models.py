@@ -121,8 +121,9 @@ class Criterion(nn.Module):
   def __init__(self, entity_types):
     super(Criterion, self).__init__()
     self.matcher = HungarianMatcher(entity_types)
-  def forward(self, ):
-    pass
+  def forward(self, start_pred, end_pred, tag_pred, start_label, end_label, tag_label):
+    indices = self.matcher(start_pred, end_pred, tag_pred, start_label, end_label, tag_label)
+    
 
 if __name__ == "__main__":
   d = 'cuda'

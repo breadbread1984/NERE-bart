@@ -121,10 +121,26 @@ class HungarianMatcher(nn.Module):
 class Criterion(nn.Module):
   def __init__(self, entity_types):
     super(Criterion, self).__init__()
+    self.entity_types = entity_types
     self.matcher = HungarianMatcher(entity_types)
+    self.criterion = nn.CrossEntropyLoss()
   def forward(self, start_pred, end_pred, tag_pred, start_label, end_label, tag_label):
     indices = self.matcher(start_pred, end_pred, tag_pred, start_label, end_label, tag_label)
-    
+    loss = list()
+    for s_p, e_p, t_p, s_l, e_l, t_l, (i, j) in zip(start_pred, end_pred, tag_pred, start_label, end_label, tag_label, indices):
+      mask_p = t_p < len(self.entity_types)
+      mask_l = t_l < len(self.entity_types)
+      s_p = s_p[mask_p,:][i] # s_p.shape = (pred_target_num, max_seq_len)
+      e_p = e_p[mask_p,:][i] # e_p.shape = (pred_target_num, max_seq_len)
+      t_p = t_p[mask_p][i] # t_p.shape = (pred_target_num, class_num)
+      s_l = s_l[mask_l][j] # s_l.shape = (label_target_num)
+      e_l = e_l[mask_l][j] # e_l.shape = (label_target_num)
+      t_l = t_l[mask_l][j] # t_l.shape = (label_target_num)
+      loss1 = self.criterion(s_p.transpose(1,-1), s_l)
+      loss2 = self.criterion(e_p.transpose(1,-1), e_l)
+      loss3 = self.criterion(t_p.transpose(1,-1), t_l)
+      loss.append(loss1 + loss2 + loss3)
+    return torch.mean(loss, dim = -1)
 
 if __name__ == "__main__":
   d = 'cuda'

@@ -80,12 +80,8 @@ def main(unused_argv):
       global_steps = epoch * len(train_dataloader) + step
       if global_steps % 100 == 0 and dist.get_rank() == 0:
         print('Step #%d Epoch #%d: loss %f, lr %f' % (global_steps, epoch, loss, scheduler.get_last_lr()[0]))
-        tb_writer.add_scalar('entity start loss', loss1, global_steps)
-        tb_writer.add_scalar('entity end loss', loss2, global_steps)
-        tb_writer.add_scalar('entity tag loss', loss3, global_steps)
-        tb_writer.add_scalar('relation head loss', loss4, global_steps)
-        tb_writer.add_scalar('relation tail loss', loss5, global_steps)
-        tb_writer.add_scalar('relation tag loss', loss6, global_steps)
+        tb_writer.add_scalar('entity loss', entity_loss, global_steps)
+        tb_writer.add_scalar('relation loss', relation_loss, global_steps)
     scheduler.step()
     if dist.get_rank() == 0:
       ckpt = {

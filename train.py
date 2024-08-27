@@ -13,7 +13,7 @@ from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from torch.utils.tensorboard import SummaryWriter
 from transformers import AutoTokenizer
 from create_datasets import load_conll04
-from models import NERE
+from models import NERE, EntityCriterion, RelationCriterion
 from predict import Predictor
 from evaluation import get_metrics
 
@@ -44,7 +44,8 @@ def main(unused_argv):
   model = NERE(len(meta['entity_types']), len(meta['relation_types']), max_entity_num = meta['max_entity_num'], max_relation_num = meta['max_relation_num'])
   model.to(device(FLAGS.device))
   model = DDP(model, device_ids=[dist.get_rank()], output_device=dist.get_rank(), find_unused_parameters=True)
-  criterion = nn.CrossEntropyLoss().to(device(FLAGS.device))
+  ent_criterion = EntityCriterion(meta['entity_types']).to(device(FLAGS.device))
+  rel_criterion = RelationCriterion(meta['relation_types']).to(device(FLAGS.device))
   optimizer = Adam(model.parameters(), lr = FLAGS.lr)
   scheduler = CosineAnnealingWarmRestarts(optimizer, T_0 = 5, T_mult = 2)
   if dist.get_rank() == 0:
@@ -71,13 +72,9 @@ def main(unused_argv):
       relation_tails = sample['relation_tails'].to(device(FLAGS.device))
       relation_tags = sample['relation_tags'].to(device(FLAGS.device))
       pred_entity_starts, pred_entity_stops, pred_entity_tags, pred_relation_heads, pred_relation_tails, pred_relation_tags = model(input_ids, attention_mask)
-      loss1 = criterion(pred_entity_starts.transpose(1,-1), entity_starts)
-      loss2 = criterion(pred_entity_stops.transpose(1,-1), entity_stops)
-      loss3 = criterion(pred_entity_tags.transpose(1,-1), entity_tags)
-      loss4 = criterion(pred_relation_heads.transpose(1,-1), relation_heads)
-      loss5 = criterion(pred_relation_tails.transpose(1,-1), relation_tails)
-      loss6 = criterion(pred_relation_tags.transpose(1,-1), relation_tags)
-      loss = loss1 + loss2 + loss3 + loss4 + loss5 + loss6
+      entity_loss, indices = ent_criterion(pred_entity_starts, pred_entity_stops, pred_entity_tags, entity_starts, entity_stops, entity_tags)
+      relation_loss = rel_criterion(indices, pred_relation_heads, pred_relation_tails, pred_relation_tags, relation_heads, relation_tails, relation_tags)
+      loss = entity_loss + relation_loss
       loss.backward()
       optimizer.step()
       global_steps = epoch * len(train_dataloader) + step

@@ -118,7 +118,7 @@ class EntityMatcher(nn.Module):
       class_loss = -tag_p[:,tag_l] # class_loss.shape = (pred_target_num, label_target_num)
       cost = span_loss + iou_loss + class_loss
       i,j = linear_sum_assignment(cost.cpu().numpy()) # i.shape = j.shape = (matched_target_num)
-      assignments.append((torch.as_tensor(i, dtype = torch,int64), torch.as_tensor(j, dtype = torch.int64)))
+      assignments.append((torch.as_tensor(i, dtype = torch.int64), torch.as_tensor(j, dtype = torch.int64)))
     return assignments
 
 class EntityCriterion(nn.Module):

@@ -86,7 +86,7 @@ class HungarianMatcher(nn.Module):
     # tag_label.shape = (batch, max_entity_num)
     start_pred = torch.argmax(start_pred, dim = -1)
     end_pred = torch.argmax(end_pred, dim = -1)
-    span_pred = torch.cat([start_pred, end_pred], dim = -1) # span_pred.shape = (batch, max_entity_num, 2)
+    span_pred = torch.stack([start_pred, end_pred], dim = -1) # span_pred.shape = (batch, max_entity_num, 2)
     span_label = torch.stack([start_label, end_label], dim = -1) # span_label.shape = (batch, max_entity_num, 2)
     assignments = list()
     for span_p, tag_p, span_l, tag_l in zip(span_pred, tag_pred, span_label, tag_label):
@@ -114,7 +114,7 @@ class HungarianMatcher(nn.Module):
       # 3) class loss
       class_loss = -tag_p[:,tag_label] # class_loss.shape = (pred_target_num, label_target_num)
       cost = span_loss + iou_loss + class_loss
-      i,j = linear_sum_assignment(cost.cpu().numpy())
+      i,j = linear_sum_assignment(cost.cpu().numpy()) # i.shape = j.shape = (matched_target_num)
       assignments.append((torch.as_tensor(i, dtype = torch,int64), torch.as_tensor(j, dtype = torch.int64)))
     return assignments
 

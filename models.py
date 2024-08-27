@@ -98,7 +98,7 @@ class EntityMatcher(nn.Module):
       # 1) span loss
       span_p_ = torch.unsqueeze(span_p, dim = 0) # span_p.shape = (1, pred_target_num, 2)
       span_l_ = torch.unsqueeze(span_l, dim = 0) # span_l.shape = (1, label_target_num, 2)
-      span_loss = torch.cdist(span_p_, span_l_, p = 1) # span_loss.shape = (1, pred_target_num, label_target_num)
+      span_loss = torch.cdist(span_p_.to(torch.float32), span_l_.to(torch.float32), p = 1) # span_loss.shape = (1, pred_target_num, label_target_num)
       span_loss = torch.squeeze(span_loss, dim = 0) # span_loss.shape = (pred_target_num, label_target_num)
       # 2) iou loss
       span_p = torch.unsqueeze(span_p, dim = 1) # span_p.shape = (pred_target_num, 1, 2)
@@ -175,7 +175,7 @@ class RelationMatcher(nn.Module):
       # 1) head tail loss
       rel_p_ = torch.unsqueeze(rel_p, dim = 0) # rel_p_.shape = (1, pred_relation_num, 2)
       rel_l_ = torch.unsqueeze(rel_l, dim = 0) # rel_l_.shape = (1, label_relation_num, 2)
-      rel_loss = torch.cdist(rel_p_, rel_l_, p = 1) # rel_loss.shape = (1, pred_relation_num, label_relation_num)
+      rel_loss = torch.cdist(rel_p_.to(torch.float32), rel_l_.to(torch.float32), p = 1) # rel_loss.shape = (1, pred_relation_num, label_relation_num)
       rel_loss = torch.squeeze(rel_loss, dim = 0) # rel_loss.shape = (pred_relation_num, label_relation_num)
       # 2) class loss
       tag_p = F.softmax(tag_p, dim = -1) # tag_p.shape = (pred_relation_num, tag_type_num)

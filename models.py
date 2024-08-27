@@ -112,7 +112,7 @@ class EntityMatcher(nn.Module):
       intersect = torch.maximum(intersect_right - intersect_left, torch.zeros_like(intersect_right - intersect_left)) # intersect.shape = (pred_target_num, label_target_num)
       union_left = torch.minimum(span_p_left, span_l_left) # union_left.shape = (pred_target_num, label_target_num)
       union_right = torch.maximum(span_p_right, span_l_right) # union_right.shape = (pred_target_num, label_target_num)
-      union = torch.maximum(union_right - union_right, 1e-10) # union.shape = (pred_target_num, label_target_num)
+      union = torch.maximum(union_right - union_left, torch.ones_like(union_right - union_left) * 1e-10) # union.shape = (pred_target_num, label_target_num)
       iou_loss = -intersect / union # iou.shape = (pred_target_num, label_target_num)
       # 3) class loss
       tag_p = F.softmax(tag_p, dim = -1) # tag_p.shape = (pred_target_num, tag_type_num)

@@ -65,6 +65,10 @@ def main(unused_argv):
   label_relations = list()
   for sample in evalset:
     entity_preds, relation_preds = predictor.call(sample['input_ids'], sample['attention_mask'])
+    entity_idx = [(old_idx, b) for old_idx, (b,e,t) in enumerate(entity_preds)]
+    entity_idx = list(sorted(entity_idx, key = lambda x: x[1])) # sort with entity begin token pos in ascent order
+    entity_idx_map = {old_idx:new_idx for new_idx, (old_idx, b) in enumerate(entity_idx)}
+    relation_labels = [(entity_idx_map(h), entity_idx_map(t), c) for h,t,c in relation_preds]
     entity_starts, entity_stops, entity_tags = sample['entity_starts'], sample['entity_stops'], sample['entity_tags']
     relation_heads, relation_tails, relation_tags = sample['relation_heads'], sample['relation_tails'], sample['relation_tags']
     entity_starts = entity_starts[entity_tags != len(entity_types)]

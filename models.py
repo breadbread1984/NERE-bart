@@ -95,10 +95,10 @@ class HungarianMatcher(nn.Module):
       span_p = span_p[mask_p,:] # span_p.shape = (pred_target_num, 2)
       span_l = span_l[mask_l,:] # span_l.shape = (label_target_num, 2)
       # 1) span loss
-      span_p = torch.unsqueeze(span_p, dim = -2) # span_p.shape = (pred_target_num, 1, 2)
-      span_l = torch.unsqueeze(span_l, dim = -3) # span_l.shape = (1, label_target_num, 2)
-      span_loss = torch.cdist(span_p, span_l, p = 1) # span_loss.shape = (pred_target_num, label_target_num,1)
-      span_loss = torch.squeeze(span_loss, dim = -1) # span_loss.shape = (pred_target_num, label_target_num)
+      span_p = torch.unsqueeze(span_p, dim = 0) # span_p.shape = (1, pred_target_num, 2)
+      span_l = torch.unsqueeze(span_l, dim = 0) # span_l.shape = (1, label_target_num, 2)
+      span_loss = torch.cdist(span_p, span_l, p = 1) # span_loss.shape = (1, pred_target_num, label_target_num)
+      span_loss = torch.squeeze(span_loss, dim = 0) # span_loss.shape = (pred_target_num, label_target_num)
       # 2) iou loss
       span_p_left, _ = torch.min(span_p, dim = -1) # span_p_left.shape = (pred_target_num, 1)
       span_p_right, _ = torch.max(span_p, dim = -1) # span_p_right.shape = (pred_target_num, 1)
@@ -112,6 +112,7 @@ class HungarianMatcher(nn.Module):
       union = torch.maximum(union_right - union_right, 1e-10) # union.shape = (pred_target_num, label_target_num)
       iou_loss = -intersect / union # iou.shape = (pred_target_num, label_target_num)
       # 3) class loss
+      tag_p = F.softmax(tag_p, dim = -1) # tag_p.shape = (pred_target_num, tag_type_num)
       class_loss = -tag_p[:,tag_label] # class_loss.shape = (pred_target_num, label_target_num)
       cost = span_loss + iou_loss + class_loss
       i,j = linear_sum_assignment(cost.cpu().numpy()) # i.shape = j.shape = (matched_target_num)

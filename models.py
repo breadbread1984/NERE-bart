@@ -156,7 +156,9 @@ class RelationMatcher(nn.Module):
     # tag_pred.shape = (batch, max_relation_num, relation_type_num)
     # head_label.shape = tail_label.shape = (batch, max_relation_num)
     # tag_label.shape = (batch, max_relation_num)
-    rel_pred = torch.stack([torch.argmax(head_pred, dim = -1), torch.argmax(tail_pred, dim = -1)], dim = -1) # rel_p.shape = (batch, max_relation_num)
+    head_pred = torch.argmax(head_pred, dim = -1) # head_pred.shape = (batch, max_relation_num)
+    tail_pred = torch.argmax(tail_pred, dim = -1) # tail_pred.shape = (batch, max_relation_num)
+    rel_pred = torch.stack([head_pred, tail_pred], dim = -1) # rel_p.shape = (batch, max_relation_num)
     rel_label = torch.stack([head_label, tail_label], dim = -1) # rel_l.shape = (batch, max_relation_num)
     assignments = list()
     for rel_p, tag_p, rel_l, tag_l, (i, j) for zip(rel_pred, tag_pred, rel_label, tag_label, indices):

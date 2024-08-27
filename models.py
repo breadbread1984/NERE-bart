@@ -72,7 +72,7 @@ class NERE(nn.Module):
     relation_tag = self.relation_tag(decoder_outputs)
     return entity_start, entity_end, entity_tag, relation_head, relation_tail, relation_tag
 
-class HungarianMatcher(nn.Module):
+class EntityMatcher(nn.Module):
   def __init__(self, entity_types):
     super(HungarianMatcher, self).__init__()
     self.entity_types = entity_types
@@ -115,17 +115,17 @@ class HungarianMatcher(nn.Module):
       iou_loss = -intersect / union # iou.shape = (pred_target_num, label_target_num)
       # 3) class loss
       tag_p = F.softmax(tag_p, dim = -1) # tag_p.shape = (pred_target_num, tag_type_num)
-      class_loss = -tag_p[:,tag_label] # class_loss.shape = (pred_target_num, label_target_num)
+      class_loss = -tag_p[:,tag_l] # class_loss.shape = (pred_target_num, label_target_num)
       cost = span_loss + iou_loss + class_loss
       i,j = linear_sum_assignment(cost.cpu().numpy()) # i.shape = j.shape = (matched_target_num)
       assignments.append((torch.as_tensor(i, dtype = torch,int64), torch.as_tensor(j, dtype = torch.int64)))
     return assignments
 
-class Criterion(nn.Module):
+class EntityCriterion(nn.Module):
   def __init__(self, entity_types):
     super(Criterion, self).__init__()
     self.entity_types = entity_types
-    self.matcher = HungarianMatcher(entity_types)
+    self.matcher = EntityMatcher(entity_types)
     self.criterion = nn.CrossEntropyLoss()
   def forward(self, start_pred, end_pred, tag_pred, start_label, end_label, tag_label):
     indices = self.matcher(start_pred, end_pred, tag_pred, start_label, end_label, tag_label)
@@ -144,6 +144,44 @@ class Criterion(nn.Module):
       loss3 = self.criterion(t_p.transpose(1,-1), t_l)
       loss.append(loss1 + loss2 + loss3)
     return torch.mean(loss), indices
+
+class RelationMatcher(nn.Module):
+  def __init__(self, relation_types):
+    super(RelationMatcher, self).__init__()
+    self.relation_types = relation_types
+  @torch.no_grad()
+  def forward(self, indices, head_pred, tail_pred, tag_pred, head_label, tail_label, tag_label):
+    # indices.shape = List[Tuple[torch.Tensor,torch.Tensor]]
+    # head_pred.shape = tail_pred.shape = (batch, max_relation_num, max_entity_num)
+    # tag_pred.shape = (batch, max_relation_num, relation_type_num)
+    # head_label.shape = tail_label.shape = (batch, max_relation_num)
+    # tag_label.shape = (batch, max_relation_num)
+    rel_pred = torch.stack([torch.argmax(head_pred, dim = -1), torch.argmax(tail_pred, dim = -1)], dim = -1) # rel_p.shape = (batch, max_relation_num)
+    rel_label = torch.stack([head_label, tail_label], dim = -1) # rel_l.shape = (batch, max_relation_num)
+    assignments = list()
+    for rel_p, tag_p, rel_l, tag_l, (i, j) for zip(rel_pred, tag_pred, rel_label, tag_label, indices):
+      mask_p = tag_p < len(self.relation_types)
+      mask_l = tag_l < len(self.relation_types)
+      rel_p = rel_p[mask_p,:] # rel_p.shape = (pred_relation_num, 2)
+      rel_l = rel_l[mask_l,:] # rel_l.shape = (label_relation_num, 2)
+      i = i.cpu() # i.shape = (entity_num)
+      j = j.cpu() # j.shape = (entity_num)
+      value_map = {t:f for f,t in zip(i,j)}
+      rel_l = rel_l.cpu().apply_(lambda v: value_map[v] if v in value_map else v).to(rel_l.device)
+      # 1) head tail loss
+      rel_p_ = torch.unsqueeze(rel_p, dim = 0) # rel_p_.shape = (1, pred_relation_num, 2)
+      rel_l_ = torch.unsqueeze(rel_l, dim = 0) # rel_l_.shape = (1, label_relation_num, 2)
+      rel_loss = torch.cdist(rel_p_, rel_l_, p = 1) # rel_loss.shape = (1, pred_relation_num, label_relation_num)
+      rel_loss = torch.squeeze(rel_loss, dim = 0) # rel_loss.shape = (pred_relation_num, label_relation_num)
+      # 2) class loss
+      tag_p = F.softmax(tag_p, dim = -1) # tag_p.shape = (pred_relation_num, tag_type_num)
+      class_loss = -tag_p[:,tag_l] # class_loss.shape = (pred_relation_num, label_relation_num)
+      cost = rel_loss + class_loss
+      i,j = linear_sum_assignment(cost.cpu().numpy()) # i.shape = j.shape = (matched_relation_num)
+      assignments.append((torch.as_tensor(i, dtype = torch.int64), torch.as_tensor(j, dtype = torch.int64)))
+    return assignments
+
+class RelationCriterion(nn.Module):
 
 if __name__ == "__main__":
   d = 'cuda'

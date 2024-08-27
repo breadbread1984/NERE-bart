@@ -74,7 +74,7 @@ class NERE(nn.Module):
 
 class EntityMatcher(nn.Module):
   def __init__(self, entity_types):
-    super(HungarianMatcher, self).__init__()
+    super(EntityMatcher, self).__init__()
     self.entity_types = entity_types
   @torch.no_grad()
   def forward(self, start_pred, end_pred, tag_pred, start_label, end_label, tag_label):
@@ -123,7 +123,7 @@ class EntityMatcher(nn.Module):
 
 class EntityCriterion(nn.Module):
   def __init__(self, entity_types):
-    super(Criterion, self).__init__()
+    super(EntityCriterion, self).__init__()
     self.entity_types = entity_types
     self.matcher = EntityMatcher(entity_types)
     self.criterion = nn.CrossEntropyLoss()
@@ -182,6 +182,28 @@ class RelationMatcher(nn.Module):
     return assignments
 
 class RelationCriterion(nn.Module):
+  def __init__(self, relation_types):
+    super(RelationCriterion, self).__init__()
+    self.relation_types = relation_types
+    self.matcher = RelationMatcher(relation_types)
+    self.criterion = nn.CrossEntropyLoss()
+  def forward(self, indices, head_pred, tail_pred, tag_pred, head_label, tail_label, tag_label):
+    indices = self.matcher(indices, head_pred, tail_pred, tag_pred, head_label, tail_label, tag_label)
+    loss = list()
+    for head_p, tail_p, tag_p, head_l, tail_l, tag_l, (i,j) in zip(head_pred, tail_pred, tag_pred, head_label, tail_label, tag_label, indices):
+      mask_p = tag_p < len(self.relation_types)
+      mask_l = tag_l < len(self.relation_types)
+      head_p = head_p[mask_p,:][i,...] # head_p.shape = (pred_relation_num, max_entity_number)
+      tail_p = tail_p[mask_p,:][i,...] # tail_p.shape = (pred_relation_num, max_entity_number)
+      tag_p = tag_p[mask_p,:][i,...] # tag_p.shape = (pred_relation_num, tag_type_num)
+      head_l = head_l[mask_l][j] # head_l.shape = (label_relation_num)
+      tail_l = tail_l[mask_l][j] # tail_l.shape = (label_relation_num)
+      tag_l = tag_l[mask_l][j] # tag_l.shape = (label_relation_num)
+      loss1 = self.criterion(head_p.transpose(1,-1), head_l)
+      loss2 = self.criterion(tail_p.transpose(1,-1), tail_l)
+      loss3 = self.criterion(tag_p.transpose(1,-1), tag_l)
+      loss.append(loss1 + loss2 + loss3)
+    return torch.mean(loss)
 
 if __name__ == "__main__":
   d = 'cuda'

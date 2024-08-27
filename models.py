@@ -109,7 +109,7 @@ class EntityMatcher(nn.Module):
       span_l_right, _ = torch.max(span_l, dim = -1) # span_l_right.shape = (1, label_target_num)
       intersect_left = torch.maximum(span_p_left, span_l_left) # intersect_left.shape = (pred_target_num, label_target_num)
       intersect_right = torch.minimum(span_p_right, span_p_right) # intersect_right.shape = (pred_target_num, label_target_num)
-      intersect = torch.maximum(intersect_right - intersect_left, 0) # intersect.shape = (pred_target_num, label_target_num)
+      intersect = torch.maximum(intersect_right - intersect_left, torch.zeros_like(intersect_right - intersect_left)) # intersect.shape = (pred_target_num, label_target_num)
       union_left = torch.minimum(span_p_left, span_l_left) # union_left.shape = (pred_target_num, label_target_num)
       union_right = torch.maximum(span_p_right, span_l_right) # union_right.shape = (pred_target_num, label_target_num)
       union = torch.maximum(union_right - union_right, 1e-10) # union.shape = (pred_target_num, label_target_num)

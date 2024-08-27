@@ -108,7 +108,11 @@ def main(unused_argv):
         relation_tails = relation_tails[relation_tags != len(meta['relation_types'])]
         relation_tags = relation_tags[relation_tags != len(meta['relation_types'])]
         entity_labels = [(b,e,t) for b,e,t in zip(entity_starts.cpu().numpy().tolist(), entity_stops.cpu().numpy().tolist(), entity_tags.cpu().numpy().tolist())]
+        entity_idx = [(old_idx, b) for old_idx, (b,e,t) in enumerate(entity_labels)]
+        entity_idx = list(sorted(entity_idx, key = lambda x: x[1])) # sort with entity begin token pos
+        entity_idx_map = {old_idx:new_idx for new_idx, (old_idx, b) in enumerate(entity_idx)}
         relation_labels = [(h,t,c) for h,t,c in zip(relation_heads.cpu().numpy().tolist(), relation_tails.cpu().numpy().tolist(), relation_tags.cpu().numpy().tolist())]
+        relation_labels = [(entity_idx_map(h), entity_idx_map(t), c) for h,t,c in relation_labels]
         pred_entities.append(entity_preds)
         label_entities.append(entity_labels)
         pred_relations.append(relation_preds)

@@ -133,9 +133,9 @@ class Criterion(nn.Module):
     for s_p, e_p, t_p, s_l, e_l, t_l, (i, j) in zip(start_pred, end_pred, tag_pred, start_label, end_label, tag_label, indices):
       mask_p = t_p < len(self.entity_types)
       mask_l = t_l < len(self.entity_types)
-      s_p = s_p[mask_p,:][i] # s_p.shape = (pred_target_num, max_seq_len)
-      e_p = e_p[mask_p,:][i] # e_p.shape = (pred_target_num, max_seq_len)
-      t_p = t_p[mask_p][i] # t_p.shape = (pred_target_num, class_num)
+      s_p = s_p[mask_p,:][i,...] # s_p.shape = (pred_target_num, max_seq_len)
+      e_p = e_p[mask_p,:][i,...] # e_p.shape = (pred_target_num, max_seq_len)
+      t_p = t_p[mask_p,:][i,...] # t_p.shape = (pred_target_num, class_num)
       s_l = s_l[mask_l][j] # s_l.shape = (label_target_num)
       e_l = e_l[mask_l][j] # e_l.shape = (label_target_num)
       t_l = t_l[mask_l][j] # t_l.shape = (label_target_num)

@@ -133,7 +133,7 @@ class EntityCriterion(nn.Module):
     indices = self.matcher(start_pred, end_pred, tag_pred, start_label, end_label, tag_label)
     loss = list()
     for s_p, e_p, t_p, s_l, e_l, t_l, (i, j) in zip(start_pred, end_pred, tag_pred, start_label, end_label, tag_label, indices):
-      mask_p = t_p < len(self.entity_types)
+      mask_p = torch.argmax(t_p, dim = -1) < len(self.entity_types)
       mask_l = t_l < len(self.entity_types)
       s_p = s_p[mask_p,:][i,...] # s_p.shape = (pred_target_num, max_seq_len)
       e_p = e_p[mask_p,:][i,...] # e_p.shape = (pred_target_num, max_seq_len)
@@ -197,7 +197,7 @@ class RelationCriterion(nn.Module):
     indices = self.matcher(indices, head_pred, tail_pred, tag_pred, head_label, tail_label, tag_label)
     loss = list()
     for head_p, tail_p, tag_p, head_l, tail_l, tag_l, (i,j) in zip(head_pred, tail_pred, tag_pred, head_label, tail_label, tag_label, indices):
-      mask_p = tag_p < len(self.relation_types)
+      mask_p = torch.argmax(tag_p, dim = -1) < len(self.relation_types)
       mask_l = tag_l < len(self.relation_types)
       head_p = head_p[mask_p,:][i,...] # head_p.shape = (pred_relation_num, max_entity_number)
       tail_p = tail_p[mask_p,:][i,...] # tail_p.shape = (pred_relation_num, max_entity_number)

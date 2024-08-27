@@ -95,7 +95,7 @@ class EntityMatcher(nn.Module):
       span_p = span_p[mask_p,:] # span_p.shape = (pred_target_num, 2)
       span_l = span_l[mask_l,:] # span_l.shape = (label_target_num, 2)
       tag_p = tag_p[mask_p,:] # tag_p.shape = (pred_target_num, tag_type_num)
-      tag_l = tag_l[mask_l,:] # tag_l.shape = (label_target_num, tag_type_num)
+      tag_l = tag_l[mask_l] # tag_l.shape = (label_target_num, tag_type_num)
       # 1) span loss
       span_p_ = torch.unsqueeze(span_p, dim = 0) # span_p.shape = (1, pred_target_num, 2)
       span_l_ = torch.unsqueeze(span_l, dim = 0) # span_l.shape = (1, label_target_num, 2)
@@ -169,7 +169,7 @@ class RelationMatcher(nn.Module):
       rel_p = rel_p[mask_p,:] # rel_p.shape = (pred_relation_num, 2)
       rel_l = rel_l[mask_l,:] # rel_l.shape = (label_relation_num, 2)
       tag_p = tag_p[mask_p,:] # tag_p.shape = (pred_relation_num, relation_type_num)
-      tag_l = tag_l[mask_l,:] # tag_l.shape = (label_relation_num, relation_type_num)
+      tag_l = tag_l[mask_l] # tag_l.shape = (label_relation_num, relation_type_num)
       i = i.cpu() # i.shape = (entity_num)
       j = j.cpu() # j.shape = (entity_num)
       value_map = {t:f for f,t in zip(i,j)}

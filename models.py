@@ -145,7 +145,8 @@ class EntityCriterion(nn.Module):
       loss2 = self.criterion(e_p.transpose(1,-1), e_l)
       loss3 = self.criterion(t_p.transpose(1,-1), t_l)
       loss.append(loss1 + loss2 + loss3)
-    return torch.mean(torch.tensor(loss)), indices
+    loss = torch.stack(loss, dim = 0)
+    return torch.mean(loss), indices
 
 class RelationMatcher(nn.Module):
   def __init__(self, relation_types):
@@ -209,7 +210,8 @@ class RelationCriterion(nn.Module):
       loss2 = self.criterion(tail_p.transpose(1,-1), tail_l)
       loss3 = self.criterion(tag_p.transpose(1,-1), tag_l)
       loss.append(loss1 + loss2 + loss3)
-    return torch.mean(torch.tensor(loss))
+    loss = torch.stack(loss, dim = 0)
+    return torch.mean(loss)
 
 if __name__ == "__main__":
   d = 'cuda'

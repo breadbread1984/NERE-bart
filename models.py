@@ -171,9 +171,9 @@ class RelationMatcher(nn.Module):
       rel_l = rel_l[mask_l,:] # rel_l.shape = (label_relation_num, 2)
       tag_p = tag_p[mask_p,:] # tag_p.shape = (pred_relation_num, relation_type_num)
       tag_l = tag_l[mask_l] # tag_l.shape = (label_relation_num,)
-      i = i.cpu() # i.shape = (entity_num)
-      j = j.cpu() # j.shape = (entity_num)
-      value_map = {t.numpy().item():f.numpy().item() for f,t in zip(i,j)}
+      i = i.cpu().numpy() # i.shape = (entity_num)
+      j = j.cpu().numpy() # j.shape = (entity_num)
+      value_map = {t.item():f.item() for f,t in zip(i,j)}
       rel_l = rel_l.cpu().apply_(lambda v: value_map[v] if v in value_map else v).to(rel_l.device)
       # 1) head tail loss
       rel_p_ = torch.unsqueeze(rel_p, dim = 0) # rel_p_.shape = (1, pred_relation_num, 2)
